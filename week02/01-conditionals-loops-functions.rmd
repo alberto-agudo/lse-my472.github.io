@@ -162,7 +162,6 @@ class(grades)
 #do.call rbinds all the elements from the list
 grades <- do.call(rbind, grades)
 grades
-
 ```
 
 ### Functions
