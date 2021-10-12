@@ -223,6 +223,8 @@ Note: The group_by argument here is key to ensure that the percentage change in 
 
 When using such an approach with lag() or lead(), it is key that the observations in the dataset are sorted chronologically. In the datasets here, this should already be given, however, you might frequently encounter datasets where it is not the case. In such datasets (and in fact generally) it is key to transform date variables from characters into proper date formats which can be used in operations such as sorting. This is left as an exercise here, for a discussion see https://r4ds.had.co.nz/dates-and-times.html. Dates can then e.g. be sorted like other values with the function "arrange()".
 
+We use the industrial production index because its values are issued monthly.
+
 #### Summary statistics
 
 Another frequent goal is to compute summary statistics. This can be done with the "summary" function, the following e.g. depicts the mean and standard deviation of UK industrial production percentage changes since January 2019:
@@ -233,6 +235,7 @@ ip_and_unemployment_wide %>%
   select(ip) %>% 
   drop_na() %>% 
   summarise(uk_ip_mean = mean(ip), uk_ip_sd = sd(ip), uk_observations = n())
+#we use drop_na after selecting so that only UK NA rows are dropped
 ```
 
 
@@ -243,6 +246,7 @@ Lastly, a very useful function is "group_by()" which creates groups within the d
 ```{r}
 group_by(ip_and_unemployment_wide, country)
 ```
+In the console you can see that there are 6 groups inside the country variable.  
 
 This can then be used to e.g. obtain summary statistics for each of these groups.
 

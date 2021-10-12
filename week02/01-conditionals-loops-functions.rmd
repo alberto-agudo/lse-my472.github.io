@@ -68,6 +68,7 @@ if (x < y) {
   }
 ```
 
+Normally you use conditionals for webscraping to automatize processes.
 
 ### Loops
 
@@ -139,6 +140,8 @@ values
 
 A structure that we will use often in this course is a loop that stores some data in different elements within a list. This will be very useful when the output from each iteration is a data frame, for example while downloading data from an API. For example:
 
+This is similar to APIs work: 
+
 ```{r}
 # Create empty list
 grades <- list()
@@ -149,11 +152,14 @@ for (i in 1:5) {
                         initial = sample(LETTERS, 1),
                         grade = runif(n = 1, min = 0, max = 100),
                         stringsAsFactors = FALSE)
+  
+  # stringsAsFactors = FALSE is used so that the characters that appear in the data frame are not considered factors
   grades[[i]] <- student
 }
 # Now we have a list of single line data frames...
 class(grades)
 # We can combine these into a joint data frame
+#do.call rbinds all the elements from the list
 grades <- do.call(rbind, grades)
 grades
 ```
@@ -196,6 +202,9 @@ my_function(z)
 z
 ```
 
+The 20 output only exists within the function, because the function is local and not global. 
+
+
 For an in depth discussion of environments, see http://adv-r.had.co.nz/Environments.html.
 
 In modular code, particularly repeated tasks are written as functions. Functions therefore contain a wide range of possible code, e.g. conditions which allow the function to run different chunks depending on the input.
@@ -223,7 +232,8 @@ A slightly different type of if statement is the `ifelse` function:
 
 ```{r}
 
-# Using an ifelse function to return an absolute value
+# Using an ifelse function to return an absolute value. The same as np.where in Python
+
 x <- -2
 abs_x <- ifelse(x > 0, x, -x)
 abs_x

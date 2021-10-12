@@ -10,8 +10,8 @@ output: html_document
 We will start by loading the `rvest` package, which will help us scrape data from the web.
 
 ```{r}
-library(rvest)
-library(tidyverse)
+suppressMessages(library(rvest))
+suppressMessages(library(tidyverse))
 ```
 
 The goal of this exercise is to scrape the counts of social security number applicants by year in the US, and then clean the data so that we can generate a plot showing the evolution in this variable over time.
@@ -49,6 +49,8 @@ social_security_data <- tab[[1]]
 social_security_data <- as_tibble(social_security_data)
 social_security_data
 ```
+The numeric columns are in character form. 
+
 
 Now let us clean the data so that we can use it for our analysis. We need to convert the population values into a numeric format, which requires deleting the commas. We will also change the variable names so that it is easier to work with them.
 
@@ -108,7 +110,7 @@ Now that we know what we're looking for, let's use `html_nodes()` to identify al
 
 
 ```{r}
-tables_raw <- html_nodes(html, css = "tba")
+tables_raw <- html_nodes(html, css = "#mw-content-text > div.mw-parser-output > table:nth-child(20)")
 length(tables_raw)
 ```
 
@@ -119,7 +121,9 @@ data_pop <- html_table(tables_raw[[1]], fill=TRUE)
 str(data_pop)
 ```
 
-As in the previous case, we still need to clean the data before we can use it. For this particular example, let's see if this dataset provides evidence in support of [Zipf's law for population ranks](https://en.wikipedia.org/wiki/Zipf%27s_law). Keeping only the columns of interest and transforming into a tibble:
+As in the previous case, we still need to clean the data before we can use it. For this particular example, let's see if this dataset provides evidence in support of [Zipf's law for population ranks](https://en.wikipedia.org/wiki/Zipf%27s_law). Zipf's law was originally formulated in terms of quantitative linguistics, stating that given some corpus of natural language utterances, the frequency of any word is inversely proportional to its rank in the frequency table. 
+
+Keeping only the columns of interest and transforming into a tibble:
 
 ```{r}
 data_pop <- as_tibble(select(data_pop, c("City", "2020census", "2020rank")))
@@ -146,12 +150,22 @@ Now we're ready to generate the figure:
 
 ```{r}
 p <- ggplot(data_pop, aes(x=rank, y=population, label=city_name)) +
-  geom_point() + geom_text(hjust=-.1, size=3) +
-	scale_x_log10("log(rank)") + 
-  scale_y_log10("log(population)", labels=scales::comma) +
+  geom_point() + geom_text(hjust=-.1, size=3)  + #geom_htext adjust text next to the point
   theme_minimal()
 p
 ```
+
+
+```{r}
+p <- ggplot(data_pop, aes(x=rank, y=population, label=city_name)) +
+  geom_point() + geom_text(hjust=-.1, size=3)  + #geom_htext adjust text next to the point
+	scale_x_log10("log(rank)") + 
+  scale_y_log10("log(population)", labels=scales::comma) + #the 
+  theme_minimal()
+p
+```
+
+This shows the power laws. 
 
 These power laws (https://en.wikipedia.org/wiki/Power_law) are thereby incredibly general. For example, have a look how the first 10 million words in 30 Wikipedias (dumps from October 2015): https://en.wikipedia.org/wiki/Zipf%27s_law#/media/File:Zipf_30wiki_en_labels.png
 
