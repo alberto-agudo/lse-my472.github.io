@@ -57,6 +57,11 @@ ip_and_unemployment_df <- read.csv("ip_and_unemployment.csv")
 head(ip_and_unemployment_df)
 ```
 
+```{r}
+ip_and_unemployment_df$date
+```
+
+
 ### Tibbles
 
 In the the tidyverse there is a function transforming data frames into so called tibbles. This allows to depict them in a more convenient form, particularly in the console and the knitted R markdowns.
@@ -126,6 +131,7 @@ ip_long <- pivot_longer(ip, cols = colnames(ip)[2:length(colnames(ip))],
 ip_long
 ```
 
+
 In the lecture, we solved this problem with the pipe operator %>%. It yields the same outcome:
 
 ```{r}
@@ -133,6 +139,7 @@ ip_long <- ip %>% pivot_longer(cols = colnames(ip)[2:length(colnames(ip))],
                                names_to = "date", values_to = "ip")
 ip_long
 ```
+
 
 ### Pivoting into a wider form
 

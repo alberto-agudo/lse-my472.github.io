@@ -15,6 +15,7 @@ Let us use our simple self-made website to illustrate how elements of websites c
 url <- "https://lse-my472.github.io/week03/website_5.html"
 html <- read_html(url)
 ```
+read_html() simply parses the html online to an R object. 
 
 html_nodes to get the nodes you want.
 Next, let us scrape all paragraphs from our website. Recall that the CSS selector of a paragraph was "p".
@@ -29,6 +30,9 @@ The list has length 5, i.e. we obtain 5 nodes as there are 5 paragraphs in our w
 ```{r}
 relevant_nodes
 ```
+
+Why xml_nodeset??
+Mainly because xml is a more general implementation of HTML (it does not rely on specific tags or formatting, you can define the tags in the way you want). Hence, most of the packages are built on xml, and they rely on xml to format and parse HTML later. 
 
 If we want to return the text without HMTL tags, we can use the function "html_text()". For example, the first element has the following text (list of nodes):
 
@@ -85,3 +89,5 @@ relevant_nodes <- html_nodes(html, css = ".division-two> h1:nth-child(1)")
 html_text(relevant_nodes[[1]])
 
 ```
+
+
