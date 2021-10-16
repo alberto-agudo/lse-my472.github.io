@@ -38,6 +38,7 @@ To extract all the tables in the html code automatically, we use `html_table()`.
 ```{r}
 
 # Extracting tables in the document
+# fill = TRUE allows us to fill the remaining rows that are not filled with data of a column.
 tab <- html_table(html_content, fill = TRUE)
 
 # Check object

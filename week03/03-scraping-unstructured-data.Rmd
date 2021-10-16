@@ -10,10 +10,10 @@ output: html_document
 Loading packages
 
 ```{r}
-library(tidyverse)
-library(stringi)
-library(rvest)
-library(DT)
+suppressMessages(library(tidyverse))
+suppressMessages(library(stringi))
+suppressMessages(library(rvest))
+suppressMessages(library(DT))
 ```
 
 A common scenario for web scraping is when the data we want is available in plain html, but in different parts of the web, and not in a table format. In this scenario, we will need to find a way to extract each element, and then put it together into a data frame manually.
@@ -32,10 +32,10 @@ Now we're ready to scrape the website:
 
 ```{r}
 # Reading the HTML code
-bribe_html <- _________(url)
+bribe_html <- read_html(url)
 
 # Identify the CSS selector and add it to the css argument
-bribe_nodes <- html_nodes(bribe_html, css = "____________")
+bribe_nodes <- html_nodes(bribe_html, css = ".paid-amount")
 
 # Content of CSS selector
 bribe_nodes
@@ -43,9 +43,11 @@ bribe_nodes
 
 We still need to do some cleaning before the data is usable:
 
+
+
 ```{r}
 # Extract the content of the CSS selector as text
-bribe_amount <- _________(bribe_nodes) %>%
+bribe_amount <- html_text(bribe_nodes) %>%
   stri_replace_first_fixed("Paid INR ", "") %>%
   stri_replace_first_regex("\\r.+", "") %>%
   stri_replace_all_fixed(",", "") %>%
@@ -59,7 +61,7 @@ Small note on `stri_replace()`: `first` means to look for the first occurrence, 
 Let's do another one: transactions during which the bribe occurred:
 
 ```{r}
-transaction <- html_nodes(bribe_html, "____________________") %>% 
+transaction <- html_nodes(bribe_html, ".transaction a") %>% 
   html_text
 
 transaction
@@ -82,20 +84,20 @@ scrape_bribe <- function(url){
   # Can you combine all previoius sections into one function?
   
   # 1. Read the html
-  c_html <- _________(url)
+  c_html <- read_html(url)
   
   # 2. Take the html and get the bribe amount
   amount <- c_html %>% 
-    html_nodes("____________") %>%
+    html_nodes(".paid-amount") %>%
     # extract it as text
-    ___________ %>% 
+    html_text() %>% 
     stri_replace_first_fixed("Paid INR ", "") %>%
     stri_replace_all_regex("\\r.+", "") %>%
     stri_replace_all_regex(",", "") %>%
     as.numeric()
   
   # 3. Take the html and get the transaction text
-  transaction <- html_nodes(c_html, "_______________") %>% 
+  transaction <- html_nodes(c_html, ".transaction a") %>% 
     html_text
   
   # 4. Take the html and get the department text
@@ -103,7 +105,7 @@ scrape_bribe <- function(url){
     html_text
   
   # 5. Combine amount, transaction, and department into one dataframe
-  df <- data.frame(________, _________, _________, stringsAsFactors = FALSE)
+  df <- data.frame(amount, transaction, dept, stringsAsFactors = FALSE)
   
   return(df)
 }
@@ -161,10 +163,10 @@ What was the average bribe payment?
 
 ```{r}
 mean(data_all$amount)
-median(data_all$amount)
+print(median(data_all$amount))
 
 # Can you create a histogram of the amounts paid?
-ggplot(data_all, aes(x = _________)) + 
+ggplot(data_all, aes(x = amount)) + 
   geom_histogram() + 
   scale_x_log10()
 
@@ -175,7 +177,7 @@ And what was the average payment for each department?
 ```{r}
 agg <- data_all %>%
   group_by(dept) %>% # group the data by department
-  summarize(mean_bribe = mean(amount) %>% round(1)) %>% # get the summery statistics
+  summarize(mean_bribe = mean(amount) %>% round(1)) %>% # get the summary statistics
   arrange(-mean_bribe) # order the data by mean bribe amount from largest to smallest
 
 ## DT will provide a sortable table in knitted document.
