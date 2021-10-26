@@ -83,6 +83,7 @@ test_text <- test_url %>%
   html_text() %>%
   # You combine all those paragraphs with a newline to differentiate between paragraphs.
   paste(collapse = "\n")
+  # Collapse is an optional character string to separate the results.
 
 test_text
 ```

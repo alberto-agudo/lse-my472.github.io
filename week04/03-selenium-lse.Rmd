@@ -31,6 +31,12 @@ url <- "https://www.lse.ac.uk/Programmes/Search-Courses"
 driver$navigate(url)
 ```
 
+
+```{r}
+cookies <- driver$findElement(using = "xpath", value = "//div[1]/p/a[1]")
+cookies$clickElement()
+```
+
 First, let us create a list with the main XPath and class selectors which we use. We will need to know the location of the search tag box, the associated button (alternatively we can just use the enter key here), the box that displays which results are on the current page, and the button which leads on the page with the next set of results. The following values have been obtained with Inspect Element in Firefox:
 
 ```{r}
@@ -64,8 +70,13 @@ split_string_test <- strsplit(results_progress_text, " ")[[1]]
 split_string_test
 
 first_result_this_page_test <- as.numeric(gsub("-.*","", split_string_test[2]))
+# Substitutes what comes after the hyphen by nothing.
+
 last_result_this_page_test <- as.numeric(gsub(".*-","", split_string_test[2]))
+# Substitutes what comes before the hyphen by nothing.
+
 total_results_test <- as.numeric(split_string_test[4])
+
 
 # Side note: as.numeric(split_string_test[4]) is just the same as
 # split_string_test[4] %>% as.numeric(), just a different notation.
@@ -85,6 +96,7 @@ current_result_counts <- function() {
                                          value = selector_list$results_progress_box)
   results_progress_text <- results_progress$getElementText()[[1]]
   
+  # The equivalent to string split in Python. 
   split_string <- strsplit(results_progress_text, " ")[[1]]
   
   first_result_this_page <- as.numeric(gsub("-.*","", split_string[2]))
@@ -193,7 +205,7 @@ scrape_programmes <- function(term) {
     for (programme_int in 1:programmes_on_this_page) {
       
       # Create the XPath character of the current programme
-      current_programe_xpath <- sprintf("/html/body/form/main/div/div/div/div[2]/div[1]/article[%g]/a/header/h1", programme_int)
+      current_programe_xpath <- sprintf("//div[1]/article[%g]/a/header/h1", programme_int)
       
       # Find the element on the website and transform it to text directly
       current_programme_text <- driver$findElement(using = "xpath",
@@ -208,7 +220,7 @@ scrape_programmes <- function(term) {
       
     }
     
-    # If we are on the last page, set the flat to TRUE and thereby leave the
+    # If we are on the last page, set the flag to TRUE and thereby leave the
     # loop afterwards
     if (last_result_this_page == total_results) {
       
