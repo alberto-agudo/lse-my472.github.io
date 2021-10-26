@@ -15,18 +15,20 @@ library("tidyverse")
 Specify the directory where the JSON files are stored:
 
 ```{r}
-current_dir <- "yourdirectoryhere"
+current_dir <- "/Users/agudo07/Documents/LSE MSc Applied Social Data Science/courses/1 - MT/MY472 - DATA FOR DATA SCIENTISTS/lse-my472.github.io/week05/"
 ```
 
 Reading/parsing the first file into R:
 
 ```{r}
-example_1_parsed <- fromJSON(paste(current_dir, "example_1.json", sep = ""))
+example_1_parsed <- fromJSON(paste(current_dir, "example1.json", sep = ""))
 class(example_1_parsed)
 names(example_1_parsed)
 ```
 
-The key-value structure is of JSON objects is transformed into (nested) lists in R:
+The key-value structure is of JSON objects is transformed into (nested) lists in R.
+
+Nested because the supervisor key has two sub-keys:
 
 ```{r}
 example_1_parsed
@@ -55,7 +57,7 @@ example_1_parsed$supervisor$department
 Let us proceed with the second example. Here we had built the JSON file such that it contained a tabular data structure. We can parse the file in the usual list format, however, also transform it into a dataframe.
 
 ```{r}
-example_2_parsed <- fromJSON(paste(current_dir, "example_2.json", sep = ""))
+example_2_parsed <- fromJSON(paste(current_dir, "example2.json", sep = ""))
 class(example_2_parsed)
 names(example_2_parsed)
 ```
@@ -77,7 +79,7 @@ Note that the JSON `null` was transformed into an NA.
 Lastly, let us look at a slightly more realistic example. Again we obtain a list for the JSON file, however, `jsonlite` actually understands here that each of the keys in the JSON (MT and LT) stores tabular data which can be represented as a dataframe in R:
 
 ```{r}
-example_3_parsed <- fromJSON(paste(current_dir, "example_3.json", sep = ""))
+example_3_parsed <- fromJSON(paste(current_dir, "example3.json", sep = ""))
 class(example_3_parsed)
 names(example_3_parsed)
 ```

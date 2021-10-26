@@ -20,7 +20,7 @@ library("tidyverse")
 To understand how APIs work, we will take the New York Times Article Search API as an example. This API allows users to search articles by string and dates, and returns counts of articles and a short description of each article (but not the full text). You can create a new account and obtain a key [here](https://developer.nytimes.com/get-started). Afterwards, paste your key here:
 
 ```{r, eval = FALSE}
-apikey <- "r8qoNqHOeA53AHsEGWTKiW5y0JSUtuc7"
+apikey <- "JEkfG7Wec51dEAjWeN8Mn0qAanp2dcaC"
 ```
 
 The fist step is to identify the base URL of the endpoint and the parameters that we can use to query the API, for the Article Search API you can find this URL structure [here](https://developer.nytimes.com/docs/articlesearch-product/1/overview). Now we can do a first API call using the **httr** package.
@@ -57,9 +57,11 @@ json$status # This should be "OK"
 names(json$response) # the actual data/response in the json object parsed with httr
 length(json$response$docs) # The returned documents (capped at 10)
 json$response$meta # The meta data of the request (hits returns the total number of articles)
+
+# That is, we have the last 10 articles; but the total amount of articles on inequality is 24063.
 ```
 
-So while the amount of returned documents here is capped at ten, there exists the hits key in the meta data which gives the total amount of articles which contained the keyword. This is every helpful for us and we can use it in a function.
+So while the amount of returned documents here is capped at ten, there exists the hits key in the meta data which gives the total amount of articles which contained the keyword. This is very helpful for us and we can use it in a function.
 
 If we check the documentation, we find that we can subset by date with the `begin_date` and `end_date` parameters. Let us see how this works:
 
@@ -159,6 +161,7 @@ Let us try to improve rewrite the function such that it works with any date inte
 nyt_dates_count <- function(q, init, end, by){
   
   # Note that init and end are now date objects and we can create a sequence with them
+  # Both init and end are assumed in a Date format.
   dates <- seq(from = init, to = end, by = by)
   dates <- format(dates, "%Y%m%d") # changing date format to match NYT API date format
   counts <- rep(NA, length(dates) - 1)

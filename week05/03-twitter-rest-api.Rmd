@@ -64,6 +64,11 @@ What are the most popular hashtags?
 
 ```{r}
 ht <- str_extract_all(tweets$text, "#[A-Za-z0-9_]+")
+# "[]": One of the characters in the brackets
+# "A-Z": Any character from A-Z
+# "_": Underscores included
+# "+": One or more times. That is, it can pick several hashtags.
+
 ht <- unlist(ht)
 head(sort(table(ht), decreasing = TRUE))
 ```
