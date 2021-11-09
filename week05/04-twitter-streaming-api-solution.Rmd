@@ -1,7 +1,7 @@
 ---
 title: "Twitter Streaming API"
 author: "Pablo Barbera, Ken Benoit, Friedrich Geiecke, Patrick Gildersleve"
-date: "25/10/2021"
+date: "26/10/2020"
 output: html_document
 ---
 
@@ -12,6 +12,7 @@ Loading packages:
 ```{r}
 library("rtweet")
 library("tidyverse")
+library("maps")
 library("stringr")
 library("maps")
 
@@ -47,7 +48,7 @@ Lastly, enter your app name into the cell below. If the cell then outputs `LSEne
 
 ```{r}
 # Replace the app name with your own!
-twitter_token <- create_token(app = "Agudo API Data Science", 
+twitter_token <- create_token(app = "enter your app name here", 
                               consumer_key = authentication$consumer_key,
                               consumer_secret = authentication$consumer_secret,
                               access_token = authentication$access_token,
@@ -67,18 +68,16 @@ First, let us have a look at the `stream_tweets` function which we will use a lo
 
 3. q = "ids": Tracking via vector of user ids (up to 5000 user_ids)
 
-4. q = c(-125, 26, -65, 49): Location via geo-coordinates (1-360 degree location boxes). A square within which we can find 
+4. q = c(-125, 26, -65, 49): Location via geo-coordinates (1-360 degree location boxes)
 
 Note in particular that while the function is running, all output is written into a JSON file on your disk. This can be very helpful to avoid losing your collected tweets should the internet connection or the script break when collecting tweets for longer durations. Unless you set parse = FALSE or specify a file name, however, this JSON file will automatically be deleted once the stream is complete and the tweets have been assigned to the R object to the left of the <- operator. If you would like to store tweets on your disk either way, set a file name manually and/or set parse = FALSE. In the parse = FALSE case, the tweets will not be assigned to an object after running (i.e. the `stream_tweets` function will not return an output), but tweets will only be written to disk. This can be helpful as for larger streams the parsing process might unnecessarily block resources. Also see the help file of `stream_tweets` which is the reference for this discussion.
 
 #### 1. Collecting a sample
 
-First, we collect a random sample of tweets for 30 seconds (those that are ) and store it as a JSON file. Frequently the output from the streaming API is malformed JSON, so we need to do a bit of gymnastics with the tryCatch expression and function from JBGruber above:
+First, we collect a random sample of tweets for 30 seconds and store it as a JSON file. Frequently the output from the streaming API is malformed JSON, so we need to do a bit of gymnastics with the tryCatch expression and function from JBGruber above:
 
 ```{r}
-stream_tweets(q = "", timeout = 30, file_name='streamed_tweets.json') # sometimes it works to use parse = FALSE as another argument.
-# the parse = FALSE downloads the json without trying to parse it. 
-# Creates the streamed_tweets.json file in your directory. 
+stream_tweets(q = "", timeout = 30, file_name='streamed_tweets.json')
 sample_tweets <- tryCatch({parse_stream('streamed_tweets.json')},
                        error = function(e)
                            {print(paste("Retrying with alternative function after initial error when parsing file",
@@ -127,42 +126,37 @@ head(keyword_tweets)
 head(keyword_tweets$text)
 ```
 
-Multiple keywords that should be contained in the tweets are separated with a capitalised `AND` (to indicate that the `and` is not a term itself). For example, let us search for the keywords trump and biden:
+Multiple keywords that should be contained in the tweets are separated with a capitalised `AND` (to indicate that the `and` is not a term itself):
 
 ```{r}
-# It is not case-sensitive. 
-keywords_tweets <- stream_tweets(q = "trump AND biden", timeout = 5)
+keywords_tweets <- stream_tweets("trump AND biden", timeout = 5)
 head(keywords_tweets$text)
 ```
-
-You can also use OR in the Twitter API. 
-
 
 #### 3. Filtering by user ids
 
 If we wanted to collect a stream of tweets from specific users, we could specify a vector of user ids and set q = user_id_vector.
 
+```{r}
+uid_tweets <- stream_tweets(q = c("2899773086"), timeout = 5)
+head(uid_tweets$text)
+```
+
 #### 4. Filtering by location
 
 Lastly, let us turn to collecting tweets filtered by location instead. To be able to apply this type of filter, we need to set a geographical box and collect only the tweets that are coming from that area.
 
-For example, imagine we want to collect tweets from the United States. One way to do it is to find two pairs of coordinates (longitude and latitude) that indicate the southwest corner AND the northeast corner to create a large rectangular* boundary encompassing the country. One important thing when using this function is to note the order it uses: **It is not (lat, long), but (long, lat)**. In the case of the US, this would therefore be approx. (-125, 26) and (-65, 49) or in one vector c(-125, 26, -65, 49). How can you find coordinates? You can e.g. use Google Maps, and right-click on the desired location (e.g. the north-east corner of the US or a city) and select "What's here?". Just note that the coordinates on Google are given in opposite order. As a small exercise, what are the approximate coordinates of Detroit's center? Alternatively you can use the function `lookup_coords`, e.g.` lookup_coords("usa")`. If you would like to look up coordinates of e.g. cities with this functions you would need to supply a valid Google Maps API key as one of its arguments. Proceeding with the example of US tweets:
-
-Detroit: Upper-right corner: 42.45321834253524, -82.90836036401082 (i.e: -82.90836036401082, 42.45321834253524)
-Lower-left corner: 42.27145296607054, -83.2636869479381 (i.e: -83.2636869479381, 42.27145296607054)
-Coordinates: (-82.90836036401082, 42.45321834253524, -83.2636869479381, 42.27145296607054)
-
+For example, imagine we want to collect tweets from the United States. One way to do it is to find two pairs of coordinates (longitude and latitude) that indicate the southwest corner AND the northeast corner to create a large rectangular* boundary encompassing the country. One important thing when using this function is to note the order it uses: It is not (lat, long), but (long, lat). In the case of the US, this would therefore be approx. (-125, 26) and (-65, 49) or in one vector c(-125, 26, -65, 49). How can you find coordinates? You can e.g. use Google Maps, and right-click on the desired location (e.g. the north-east corner of the US or a city) and select "What's here?". Just note that the coordinates on Google are given in opposite order. As a small exercise, what are the approximate coordinates of Detroit's center? Alternatively you can use the function `lookup_coords`, e.g.` lookup_coords("usa")`. If you would like to look up coordinates of e.g. cities with this functions you would need to supply a valid Google Maps API key as one of its arguments. Proceeding with the example of US tweets:
 
 ```{r}
-stream_tweets(q = c(-125, 26, -65, 49), timeout = 30, file_name='usa_tweets.json')
-#stream_tweets(q = lookup_coords("usa"), timeout = 30, file_name='__________________')
+stream_tweets(q = c(-125, 26, -65, 49), timeout = 30, parse=FALSE, file_name='streamed_geo_tweets.json')
+#stream_tweets(q = lookup_coords("usa"), timeout = 30, file_name='streamed_geo_tweets.json')
 
-geo_tweets <- tryCatch({parse_stream('usa_tweets.json')},
+geo_tweets <- tryCatch({parse_stream('streamed_geo_tweets.json')},
                        error = function(e)
                            {print(paste("Retrying with alternative function after initial error when parsing file",
-                                        'usa_tweets.json'));
-                           return(recover_stream('usa_tweets.json'))})
-
+                                        'streamed_geo_tweets.json'));
+                           return(recover_stream('streamed_geo_tweets.json'))})
 ```
 
 Where are these tweets from more precisely? We can use the **maps** package to visualise this. In the `map.where` function we can thereby e.g. use "state" as the first argument to obtain location of tweets at the state level or "world" to obtain location at the country level. To do this, however, we first need to add columns to our data frame that store the latitude and longitude of each tweet. The `lat_lng` function appends the data frame with latitude and longitude variables using available geo-location information in tweet data returned from the API. For in detail information of what types of location data can be attached to geo-tagged tweets, see e.g. this [link](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/overview/geo-objects)
