@@ -5,6 +5,12 @@ date: "08/11/2021"
 output: html_document
 ---
 
+Computational side: Python has more implementations of Deep Learning applied to NLP.
+
+Even though there are several ways to write the same regex query, some of them are more efficient. How do you know which is the most efficient one? You should time the execution of your code. 
+
+Some people have already built dictionaries within their field of expertise (like financial dictionaries, psychologists have also created dictionaries for emotions...)
+
 Loading packages:
 
 ```{r}
@@ -25,6 +31,8 @@ exemplary_documents
 ```
 
 Next, we create a `corpus` object from the texts using the `quanteda` package. For a detailed tutorial of this package and textual analysis with it see the following [link](https://tutorials.quanteda.io/). The corpus object stores the documents and a data frame containing so called document variables (`docvars`) that describe the individual documents. When creating the corpus for our example, let us store the name and the number of characters of each document as the document variables.
+
+Docvars in this case is specified as metainformation.
 
 ```{r}
 exemplary_corpus <- corpus(exemplary_documents,
@@ -64,6 +72,8 @@ Based on this corpus, let us create a document-feature matrix (dfm). It has a ro
 dfmplain <- dfm(data_corpus_inaugural)
 dfmplain
 ```
+Sparse means that the table contains a lot of zeros (91.8%) because some words do not appear in many documents. 
+
 
 Note: There might be some slight variation in the features before and after removing punctuation for different `quanteda` versions.
 
@@ -161,6 +171,7 @@ dfmcleaned
 To depict word clouds for different presidents, we need to select associated documents/rows in the dfm. This can e.g. be done via information contained in the document variables using the function `dfm_subset` which returns another dfm that is a subset of the original one. We will then use this dfm as the  argument in the `textplot_wordcloud` function:
 
 ```{r}
+# Here you are filtering the dfm only with speeches of Obama.
 textplot_wordcloud(dfm_subset(dfmcleaned, President == "Obama"), 
                    rotation=0, min_size=.75, max_size=3, max_words=50)
 textplot_wordcloud(dfm_subset(dfmcleaned, President == "Trump"),
@@ -182,9 +193,12 @@ In some applications, we might e.g. want to [stem](https://nlp.stanford.edu/IR-b
 dfmcleaned <- data_corpus_inaugural %>%
   tokens(remove_punct = TRUE, remove_numbers = TRUE) %>%
   tokens_remove(stopwords("en"), padding = TRUE) %>%
+  # the padding argument: When you remove stopwords, it replaces them with empty strings so that you can get bigrams that make sense (otherwise, you would get a bigram that did not exist before, since you would have eliminated the stopword that separated them).
+  # bigrams, combinations of two words. Bigrams are sequences of two words. 
   tokens_ngrams(n = 1:2) %>% # up to bigrams
   dfm() %>%
   dfm_trim(min_termfreq = 2)
+# each feature should appear in the corpus at least twice. 
 dfmcleaned
 ```
 

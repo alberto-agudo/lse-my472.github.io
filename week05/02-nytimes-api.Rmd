@@ -58,7 +58,7 @@ names(json$response) # the actual data/response in the json object parsed with h
 length(json$response$docs) # The returned documents (capped at 10)
 json$response$meta # The meta data of the request (hits returns the total number of articles)
 
-# That is, we have the last 10 articles; but the total amount of articles on inequality is 24063.
+# That is, we have the last 10 articles; but the total amount of articles on inequality is 24137.
 ```
 
 So while the amount of returned documents here is capped at ten, there exists the hits key in the meta data which gives the total amount of articles which contained the keyword. This is very helpful for us and we can use it in a function.
@@ -177,7 +177,10 @@ nyt_dates_count <- function(q, init, end, by){
     Sys.sleep(6)
   }
   
+  # You use the length - 1 to combine it with the last date (dates[i + 1])
+  
   # Now the function also returns a dataframe with two columns: date & count
+  # dates[-length(dates)] reverses the order of dates
   df <- data.frame(date = as.Date(dates[-length(dates)], format = "%Y%m%d"), count = counts)
   return(df)
 }

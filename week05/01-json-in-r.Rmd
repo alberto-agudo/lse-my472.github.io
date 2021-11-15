@@ -26,7 +26,7 @@ class(example_1_parsed)
 names(example_1_parsed)
 ```
 
-The key-value structure is of JSON objects is transformed into (nested) lists in R.
+The key-value structure of JSON objects is transformed into (nested) lists in R.
 
 Nested because the supervisor key has two sub-keys:
 
@@ -76,7 +76,7 @@ example_2_parsed %>% as_tibble()
 
 Note that the JSON `null` was transformed into an NA.
 
-Lastly, let us look at a slightly more realistic example. Again we obtain a list for the JSON file, however, `jsonlite` actually understands here that each of the keys in the JSON (MT and LT) stores tabular data which can be represented as a dataframe in R:
+Lastly, let us look at a slightly more realistic example. Again, we obtain a list for the JSON file, however, `jsonlite` actually understands here that each of the keys in the JSON (MT and LT) stores tabular data which can be represented as a dataframe in R:
 
 ```{r}
 example_3_parsed <- fromJSON(paste(current_dir, "example3.json", sep = ""))
@@ -95,4 +95,3 @@ The dataframe contained in the LT key:
 ```{r}
 example_3_parsed$LT
 ```
-

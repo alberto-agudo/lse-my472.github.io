@@ -25,22 +25,22 @@ source("https://gist.githubusercontent.com/JBGruber/dee4c44e7d38d537426f57ba1e4f
 First, we need to authenticate. After your application has been approved, you can paste the consumer key, consumer secret, access token, and access token secret strings into the list below:
 
 ```{r}
-authentication <- list(consumer_key = "CONSUMER_KEY",
-                 consumer_secret = "CONSUMER_SECRET",
-                 access_token = "ACCESS_TOKEN",
-                 access_token_secret = "ACCESS_TOKEN_SECRET")
+#authentication <- list(consumer_key = "CONSUMER_KEY",
+#                 consumer_secret = "CONSUMER_SECRET",
+#                 access_token = "ACCESS_TOKEN",
+#                 access_token_secret = "ACCESS_TOKEN_SECRET")
 ```
 
 A more convenient approach could be to store this list once after you have pasted your keys and then to reload it when running some code. Store the list once with:
 
 ```{r}
-save(authentication, file = "authentication.rda")
+#save(authentication, file = "authentication.rda")
 ```
 
 To load the list containing your authentication whenever you run such a script, you can then simply add the following cell in the future (if the `authentication.rda` file is contained in the directory):
 
 ```{r}
-load("authentication.rda")
+load("myauthentication.rda")
 ```
 
 Lastly, enter your app name into the cell below. If the cell then outputs `LSEnews` after running, we are good to go:
@@ -73,7 +73,7 @@ Note in particular that while the function is running, all output is written int
 
 #### 1. Collecting a sample
 
-First, we collect a random sample of tweets for 30 seconds (those that are ) and store it as a JSON file. Frequently the output from the streaming API is malformed JSON, so we need to do a bit of gymnastics with the tryCatch expression and function from JBGruber above:
+First, we collect a random sample of tweets for 30 seconds (those that are ) and store it as a JSON file. Frequently, the output from the streaming API is malformed JSON, so we need to do a bit of gymnastics with the tryCatch expression and function from JBGruber above:
 
 ```{r}
 stream_tweets(q = "", timeout = 30, file_name='streamed_tweets.json') # sometimes it works to use parse = FALSE as another argument.
@@ -165,10 +165,9 @@ geo_tweets <- tryCatch({parse_stream('usa_tweets.json')},
 
 ```
 
-Where are these tweets from more precisely? We can use the **maps** package to visualise this. In the `map.where` function we can thereby e.g. use "state" as the first argument to obtain location of tweets at the state level or "world" to obtain location at the country level. To do this, however, we first need to add columns to our data frame that store the latitude and longitude of each tweet. The `lat_lng` function appends the data frame with latitude and longitude variables using available geo-location information in tweet data returned from the API. For in detail information of what types of location data can be attached to geo-tagged tweets, see e.g. this [link](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/overview/geo-objects)
+Where are these tweets from more precisely? We can use the **maps** package to visualise this. In the `map.where` function we can thereby e.g. use **"state"** as the first argument to obtain location of tweets at the state level or **"world"** to obtain location at the country level. To do this, however, we first need to add columns to our data frame that store the latitude and longitude of each tweet. The `lat_lng` function appends the data frame with latitude and longitude variables using available geo-location information in tweet data returned from the API. For in detail information of what types of location data can be attached to geo-tagged tweets, see e.g. this [link](https://developer.twitter.com/en/docs/twitter-api/v1/data-dictionary/overview/geo-objects)
 
 ```{r}
-
 # Using the lat_lng function to add two columns to the data frame called lat and lng
 geo_tweets <- lat_lng(geo_tweets)
 

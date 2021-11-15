@@ -5,6 +5,9 @@ date: "08/11/2021"
 output: html_document
 ---
 
+In regex you can also use look aheads and look afters of several patterns (for instance, extract everything that comes after the...)
+
+
 This brief document discusses how to search in R for some exemplary regular expressions that we discussed in the lecture.
 
 Loading packages (the tidyverse includes the `readr` and `stringr` packages that we are using here):
@@ -13,22 +16,25 @@ Loading packages (the tidyverse includes the `readr` and `stringr` packages that
 library("tidyverse")
 #install.packages("htmlwidgets")
 ```
+stringr already appears inside tidyverse.
 
 Specify the directory where the txt file is stored:
 
 ```{r}
-current_dir <- "tba"
+current_dir <- "/Users/agudo07/Documents/LSE MSc Applied Social Data Science/courses/1 - MT/MY472 - DATA FOR DATA SCIENTISTS/lse-my472.github.io/week07/"
 ```
 
 Load the txt file into a character vector with `read_file`:
 
 ```{r}
-sample_text <- read_file(paste(current_dir, "sample_text.txt", sep = ""))
+sample_text <- read_file(paste(current_dir, "sample.txt", sep = ""))
 ```
 
 Helpful functions are e.g. `str_view`, `str_view_all`, `str_extract`, `str_extract_all`. The `_all` variants process all matches in the string rather than only the first.
 
 The view function allows to view keyword and/or regular expression matches in R similarly to in a text editor:
+
+View selects the first occurrence. 
 
 ```{r}
 str_view(sample_text, "@")
@@ -39,7 +45,8 @@ str_view_all(sample_text, "@")
 ```
 
 ```{r}
-str_view_all(sample_text, "a|e")
+str_view_all(sample_text, "a|e") 
+# Selects a or e.
 ```
 
 The extract function on the other hand allows to extract the matching characters. The following regular expression is one possible way to use the options we discussed this week to extract the times from the file (as the backslash is already used as an escape symbol in normal strings in R, we need to use a double backslash for regular expressions):
@@ -51,5 +58,8 @@ str_extract(sample_text, "\\d{1,2}[:.\\s-]?\\d{0,2}")
 ```{r}
 str_extract_all(sample_text, "\\d{1,2}[:.\\s-]?\\d{0,2}")
 ```
+
+It returns a list because it can be applied to a list of strings.
+
 
 Other helpful functions are e.g. `str_detect` (particularly when all words are elements in a long character vector) and `str_count`. For a detailed discussion of strings and regular expressions in R with the `stringr` package, see http://r4ds.had.co.nz/strings.html and the vignette https://cran.r-project.org/web/packages/stringr/vignettes/regular-expressions.html.
