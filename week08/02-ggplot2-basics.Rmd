@@ -13,7 +13,7 @@ For a review of the log scale, see for example this [video](https://www.youtube.
 
 Loading packages:
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library("tidyverse")
 library("lubridate")
 library("scales")
@@ -58,6 +58,7 @@ Two separate time series by party, now also aggregated to monthly:
 # Obtain a new data frame with monthly counts of posts per party
 counts <- df %>%
   filter(party != "Independent") %>% 
+  # ceiling_date function aggregates the days into months, with the final day of the month as a representation. 
   group_by(month = ceiling_date(date, "month"), party) %>% 
   summarise(posts = n())
 
@@ -65,8 +66,12 @@ p <- ggplot(counts, aes(x = month,
                         y = posts, group = party))
 p + geom_line(aes(color = party)) +
   scale_color_manual(values=c("blue", "red"))
+# Here the order of the values is assigned depending on which value appears first in the dataset. Since Democrat appears first, it is the firts color value. 
 ```
 
+**Explanation of the scale_x_log10. What this does is: It takes the logarithm of the x-values, creates the figure with these logarithms, and then uses the previous linear axis. It is as if we transformed the numbers but made a reference to the previous values (before transformation). Some numbers fall out of the figure because of the xlims, but we can change this.**
+**You can notice that it is a logarithmic scale because the axis shows the same distance between 10-100 and between 100-1000.**
+**You can read the y values in the y-axis as log y.**
 
 ## Univariate analysis for a single continuous variable
 
@@ -82,11 +87,24 @@ p + geom_density() + scale_x_continuous("likes count", labels = comma)
 
 # The same log scale (note: the labels = comma option prevents scientific
 # notation of numbers as 1e+00, 1e+01 and uses the `scales` package)
+# Log allows really skewed distributions to appear normal (log-normal).
 p + geom_histogram() + scale_x_log10("likes count", labels = comma)
 p + geom_density() + scale_x_log10("likes count", labels = comma)
 
 # Why does this line of code drops some observations?
 ```
+
+```{r}
+p1 <- ggplot(mpg, aes(displ, hwy)) +
+    geom_point()
+ p1
+ p1 + scale_y_log10()
+ p1 + scale_x_log10()
+ p1 + scale_y_log10() + scale_x_log10()
+ ggplot(mpg, aes(x = log(displ, base = 10), y = log(hwy, base = 10))) + geom_point()
+```
+
+
 
 ## Univariate analysis for a single categorical variable
 
@@ -122,10 +140,12 @@ p + geom_point() + xlim(0, 10) + ylim(0, 10)
   
 # With log scales
 p + geom_point() + scale_x_log10(labels = comma) + scale_y_log10(labels = comma) 
+
 p + geom_point() + scale_x_log10(labels = comma) + scale_y_log10(labels = comma) + 
     stat_smooth()
 ```
 
+When we apply the logplot, there is an unusual shape at the beginning of the plot (because of the combination of the integer counts and the logscale). This happens because of: 1) The grid shape (which is shown at the beginning), and 2) The smaller density of points at the beginning of the range of values (there are less posts with likes count between [0-10] than [10-1000]), and this causes the grid shape to be hidden for the middle of the graph.
 
 ## Bivariate analysis for one continuous variable and one categorical variable
 
@@ -136,6 +156,7 @@ p <- ggplot(df, aes(x = post_type, y = likes_count)) + xlab("Post type") +
 p + geom_boxplot()
 
 # Box plot and violin plot with log scale
+# When you cannot see anything, you need a log transformation. 
 p + geom_boxplot() + scale_y_log10(labels = comma)
 p + geom_violin() + scale_y_log10(labels = comma)
 
@@ -144,6 +165,7 @@ p <- ggplot(df, aes(x = likes_count))
 p + geom_density(aes(color = party)) + scale_x_log10("likes count", labels = comma)
 ```
 
+To calculate the density function, you create a histogram and fit the density function to it. 
 
 ## Bivariate analysis for two categorical variables
 
@@ -157,7 +179,7 @@ p <- ggplot(counts, aes(x = party, y = post_type)) + ylab("post type")
 p + geom_tile(aes(fill = posts))
 
 ```
-
+Republicans post more photo types. 
 
 ## Multivariate analysis for three continuous variables
 
@@ -171,6 +193,7 @@ p + geom_point() + scale_y_log10(labels = comma) + scale_x_log10(labels = comma)
  stat_smooth(method = "lm")
 ```
 
+Angry reactions are more popular.
 
 ## Multivariate analysis for two continuous variables and one categorical variable
 
@@ -205,6 +228,7 @@ p + geom_point(aes(color = post_type))
 p + geom_point(aes(shape = post_type))
 
 ## Combining both (now different shapes also have different colors)
+# You can combine both!
 p + geom_point(aes(shape = post_type, color = post_type))
 ```
 
@@ -217,6 +241,7 @@ p <- ggplot(df, aes(x = party, y = comments_count)) + ylab("comments count")
 p + geom_point()
 
 # vs
+# position_jitter shows you how to spread the jittered values (the margins on width and height).
 p + geom_jitter(position = position_jitter(width = .1, height=.1))
 ```
 
@@ -227,13 +252,14 @@ p <- ggplot(df, aes(x = likes_count, y = comments_count)) +
   scale_y_log10("Comments count", labels = comma) 
 p + geom_point()
 
-## Jittering points (yet, really changes the plot's appearance here and can be misleading)
+## Jittering points (yet, really changes the plot's appearance here and can be misleading because it looks like the variables are of double type).
 p + geom_jitter(position = position_jitter(width = .5, height =.5))
 
-## Transparency
+## Transparency (lower alpha)
 p + geom_jitter(position = position_jitter(width = .5, height = .5), alpha = 1/25)
 
 ## Hexbin (if error: run install.packages("hexbin"))
+# This bins values
 p <- ggplot(df[df$likes_count>0 & df$comments_count>0,], 
         aes(x=likes_count, y = comments_count))
 p + geom_hex() + scale_fill_continuous(trans="log10")
@@ -241,10 +267,13 @@ p + geom_hex() + scale_fill_continuous(trans="log10")
 # Generally, plotting binned means (either over deciles or over fixed (log) intervals like here)
 # can help with plots that contain a lot of points/observations.
 # Furthermore, geom_rug() is another option to indicate where most mass is
+# Geom_rug is in the sides, and stat_summary_bin shows the mean of each bin (for twenty bins across the whole variable domain),
 p <- ggplot(df, aes(x = likes_count, y = comments_count)) +
   scale_x_log10("Likes count", labels = comma) +
   scale_y_log10("Comments count", labels = comma) 
 p + geom_point() + geom_rug(color = "grey", alpha = 0.6) +
    stat_summary_bin(fun = 'mean', bins = 20, color = 'green', size = 2, geom = 'point')
+# You can do this with equally distanced bins (as in this case), or 
+# by percentiles.
 
 ```

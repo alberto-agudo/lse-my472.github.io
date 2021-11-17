@@ -11,7 +11,7 @@ We will continue working with a random sample of 10,000 public Facebook posts by
 
 For a review of the log scale, see for example this [video](https://www.youtube.com/watch?v=sBhEi4L91Sg).
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library("tidyverse")
 library("lubridate")
 library("scales")
@@ -46,6 +46,7 @@ p + geom_histogram() + scale_y_continuous("Post count") +
     
 # Changing axis breaks and defining label for each break
 p <- ggplot(df, aes(x = likes_count)) + xlab("likes count")
+# Here you can see how the breaks stop after your last specified break.
 p + geom_histogram() + scale_x_log10(breaks = c(1, 10, 100, 1000))
 p + geom_histogram() + scale_x_log10(breaks = c(1, 10, 100, 1000, 10000),
     labels=c(1, 10, 100, "1K", "10K"))
@@ -213,4 +214,5 @@ p4 <- ggplot(df, aes(x = gender, y = likes_count)) +
 pdf("multiple_plots_grid.pdf", height = 6, width = 6)
 grid.arrange(arrangeGrob(p1, p2, p3, p4, ncol = 2, heights = c(0.6, 0.4)))
 dev.off()
+# You'll always need to use dev.off() to close the code.
 ```
