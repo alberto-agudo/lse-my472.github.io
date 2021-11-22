@@ -22,7 +22,7 @@ library("scales")
 Reading in the data and some initial processing:
 
 ```{r}
-df <- read.csv("data/fb-congress-data.csv", stringsAsFactors = FALSE)
+df <- read.csv("data/fb-congress-data.csv", stringsAsFactors = FALSE) %>% as_tibble()
 
 # Transform date column to datetime
 df$date <- as_date(df$date)
@@ -58,20 +58,24 @@ Two separate time series by party, now also aggregated to monthly:
 # Obtain a new data frame with monthly counts of posts per party
 counts <- df %>%
   filter(party != "Independent") %>% 
-  # ceiling_date function aggregates the days into months, with the final day of the month as a representation. 
+  # ceiling_date function aggregates the days into months, with the next unit that encompasses it as a representation.
+  # for instance, here the dates that are represented as the next month (because they are in the interval of month m and m + 1, so they will be shown as month m + 1).
   group_by(month = ceiling_date(date, "month"), party) %>% 
   summarise(posts = n())
 
 p <- ggplot(counts, aes(x = month, 
-                        y = posts, group = party))
+                        y = posts
+                        ))
 p + geom_line(aes(color = party)) +
-  scale_color_manual(values=c("blue", "red"))
-# Here the order of the values is assigned depending on which value appears first in the dataset. Since Democrat appears first, it is the firts color value. 
+  scale_color_manual(values=c(Republican = "blue", Democrat = "red"))
+
+# Here there is no need to use the group = party argument.
+# Here the order of the values is assigned depending on which value appears first in the dataset. Since Democrat appears first, it is the first color value. You can also change this specification. 
 ```
 
-**Explanation of the scale_x_log10. What this does is: It takes the logarithm of the x-values, creates the figure with these logarithms, and then uses the previous linear axis. It is as if we transformed the numbers but made a reference to the previous values (before transformation). Some numbers fall out of the figure because of the xlims, but we can change this.**
+**Explanation of the scale_x_log10. What this does is: It takes the logarithm of the x-values, creates the figure with these logarithms, and then uses the previous linear axis. It is as if we transformed the numbers but made a reference to the previous values (before transformation). Some numbers fall out of the figure because of the xlims, but we can change this. THis is useful when we want to generate transformations without eliminating readability of our figure.**
 **You can notice that it is a logarithmic scale because the axis shows the same distance between 10-100 and between 100-1000.**
-**You can read the y values in the y-axis as log y.**
+**You can read the y values in the y-axis as exponents of log y. (The values are logs of y, whereas the values displayed in the axes are only y).**
 
 ## Univariate analysis for a single continuous variable
 
@@ -91,7 +95,8 @@ p + geom_density() + scale_x_continuous("likes count", labels = comma)
 p + geom_histogram() + scale_x_log10("likes count", labels = comma)
 p + geom_density() + scale_x_log10("likes count", labels = comma)
 
-# Why does this line of code drops some observations?
+# Why does this line of code drop some observations?
+# Because these are the posts with a like count of zero. Hence, for these the logarithm is an undetermined value, so our geoms directly remove them from the plotting dataset. 
 ```
 
 ```{r}
@@ -112,7 +117,9 @@ p1 <- ggplot(mpg, aes(displ, hwy)) +
 p <- ggplot(df, aes(x=post_type)) + xlab("post type")
 
 # Bar chart
-p + geom_bar() ## number of posts by type
+p + geom_bar() 
+## number of posts by type. This is already performing a stats_count() function
+# under the hood
 
 # Bar chart (horizontal)
 p + geom_bar() + coord_flip()
@@ -262,7 +269,7 @@ p + geom_jitter(position = position_jitter(width = .5, height = .5), alpha = 1/2
 # This bins values
 p <- ggplot(df[df$likes_count>0 & df$comments_count>0,], 
         aes(x=likes_count, y = comments_count))
-p + geom_hex() + scale_fill_continuous(trans="log10")
+p + geom_hex() + scale_x_log10() + scale_y_log10() # scale_fill_continuous(trans="log10")
 
 # Generally, plotting binned means (either over deciles or over fixed (log) intervals like here)
 # can help with plots that contain a lot of points/observations.

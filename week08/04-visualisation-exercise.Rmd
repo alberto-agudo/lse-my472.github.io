@@ -67,7 +67,7 @@ p
 
 # Adding president names
 # With angle = 90 you can create vertical texts. 
-p <- p + geom_text(data = pres, aes(x = start, y = 0.1, label = name), angle = 90)
+p <- p + geom_text(data = pres, aes(x = start, y = 0.1, label = name), angle = 90, hjust = 0.25, vjust = 1.25, size = 3)
 p
 
 
@@ -76,13 +76,16 @@ p <- p + geom_vline(data = pres, xintercept = start, color = "grey50", linetype 
 p
 
 # Finally, moving legend and removing x axis title
-
+p <- p + scale_fill_manual("Party of President", 
+        values=alpha(c("blue", "red"), 0.2),
+        labels= c("Democratic", "Republican")) +  theme(legend.position = "bottom") + xlab(NULL)
+p
 
 
 # Adjusting y axis
-
-
-
+p <- p + scale_y_continuous(breaks = seq(0.02, 0.12, by = 0.02), labels = percent, expand = c(0, 0))
+p
+# You can simply use percent to get percentage numbers. 
 ```
 
 
