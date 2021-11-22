@@ -6,10 +6,11 @@ output: html_document
 ---
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library("tidyverse")
 library("plotly")
 library("scales")
+library("lubridate")
 ```
 
 
@@ -20,7 +21,7 @@ Try to replicate the following line chart that displays the evolution in the une
 ```{r}
 
 # Creating a dataframe with the unemployment data
-unemp <- read.csv("data/unemployment.csv", stringsAsFactors = FALSE)
+unemp <- read.csv("data/unemployment.csv", stringsAsFactors = FALSE) %>% as_tibble()
 
 # Creating a data frame with the background colour information
 name <- c("Truman", "Eisenhower", "Kennedy", "Johnson", "Nixon",
@@ -31,7 +32,8 @@ start <- as.Date(c("1948-01-01", "1953-01-20", "1961-01-20", "1963-11-22",
         "1989-01-20", "1993-01-20", "2001-01-20", "2009-01-20"))
 end <- c(start[-1], as.Date("2016-10-01"))
 party <- c("D", "R", "D", "D", "R", "R", "D", "R", "R", "D", "R", "D")
-pres <- data.frame(name, start, end, party, stringsAsFactors=F)
+pres <- data.frame(name, start, end, party, stringsAsFactors=F) %>% as_tibble()
+
 
 
 ```
@@ -42,24 +44,36 @@ Your code here:
 ```{r}
 
 # Transform date column to datetime (lubridate package!)
-
+unemp <- unemp %>% mutate(date = lubridate::as_date(date, format = "%Y-%m-%d"))
 
 
 # Create a line-plot with unemployment and date
+# It is better to leave the aes within the geometry because the future rectangular data
+# will only need the date instead of the unemployment value. 
+# It does not work if you specify data in ggplot before.
+p <- ggplot(unemp) + geom_line(aes(x = date, y = unemp))
 
-
+p 
 
 # Fix axes and add colored rectangles
+# To avoid the alpha argument to appear we use the scale_fill_manual function.
+p <- p + geom_rect(data = pres, aes(xmin = start, xmax = end, ymin = 0, ymax = 0.12, fill = party)) + scale_fill_manual(values = alpha(c("blue", "red"), 0.2))
+p
 
-
+# the expand argument is used to multiply the gaps between the axes and the inner plot. If both vertical axes are multiplied by 0, the gap will close. If you want to fix the y gap then you should do it with the scale_y.
+datev <- lubridate::as_date(c("1960-01-01", "1980-01-01", "2000-01-01"))
+p <- p + scale_x_date(breaks = datev, labels = date_format("%Y"), expand = c(0, 0))
+p
 
 # Adding president names
-
+# With angle = 90 you can create vertical texts. 
+p <- p + geom_text(data = pres, aes(x = start, y = 0.1, label = name), angle = 90)
+p
 
 
 # Adding lines to separate presidencies
-
-
+p <- p + geom_vline(data = pres, xintercept = start, color = "grey50", linetype = 5)
+p
 
 # Finally, moving legend and removing x axis title
 
@@ -125,7 +139,7 @@ Animated 3D plot:
 #   - z-axis: message_length
 # see ?plot_ly for guidance!
 
-fig <- plot_ly(df_plot, _________, _________, _________, color = ~party)
+fig <- plot_ly(df_plot, x = ~likes_count, y = ~shares_count, z = ~message_length, color = ~party)
 fig <- fig %>% add_markers()
 fig <- fig %>% layout(scene = list(xaxis = list(title = "Log likes count"),
                      yaxis = list(title = "Log shares count"),
