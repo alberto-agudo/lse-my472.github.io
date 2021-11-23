@@ -18,6 +18,7 @@ library(DBI)
 
 ```{r, eval=FALSE}
 # Create database: This will create a file in our hard drive if it does not exist already
+# Connect function: Searchs a db file, otherwise it creates it.
 db <- dbConnect(RSQLite::SQLite(), "data/facebook-db.sqlite")
 
 # Reading the first file into R
@@ -25,9 +26,12 @@ congress <- read.csv("data/congress-facebook-2017.csv",
 	stringsAsFactors = FALSE)
 
 # Adding a first table: User-level data
+
 dbWriteTable(db, "congress", congress)
 
 # Testing that it works with a simple query
+# Check the columns contained in the table
+# Get the first five rows from that database.
 dbListFields(db, "congress")
 dbGetQuery(db, "SELECT * FROM congress LIMIT 5")
 ```
@@ -37,6 +41,7 @@ Note that we have used `dbWriteTable` to add the data frame to our database, and
 We now switch to the second table. However, the files are too big to open them all in memory. Instead, we will open them one by one, and then __append__ them to the table. Let us see how that works...
 
 ```{r, eval=FALSE}
+# Creates a character vector of all file names.
 fls <- list.files("data/posts", full.names = TRUE)
 
 for (f in fls){
@@ -47,6 +52,7 @@ for (f in fls){
   fb <- read.csv(f, stringsAsFactors = FALSE)
   
   # Adding to table in SQL database
+  # append = TRUE means that, if there is no such table named posts, it will create it. Afterwards, it will append the new posts to the table.
   dbWriteTable(db, "posts", fb, append = TRUE)
   
 }
@@ -116,19 +122,19 @@ dbListFields(db, "posts")
 Let us start with some examples of __SELECT__:
 
 ```{r}
-# Querying just one column
+# Querying just one column. Selects the name column from the congress table and limits it to the first 10 rows. 
 dbGetQuery(db, "SELECT name FROM congress LIMIT 10")
 
 # Multiple columns
 dbGetQuery(db, "SELECT name, party FROM congress LIMIT 10")
 
-# Adding expressions (division returns integer)
+# Adding expressions (division returns integer). Here you are creating a new column. Upper is another function that gives you the post types in uppercase letters. 
 dbGetQuery(db, "SELECT from_name, likes_count/comments_count, UPPER(type) FROM posts LIMIT 10")
 
-# Adding expressions (division returns float)
+# Adding expressions (division returns float). Because dividing an integer between an integer will give you an integer, you can change the type of variable that it is. If you change it into float type, it will return a float division.
 dbGetQuery(db, "SELECT from_name, CAST(likes_count AS FLOAT)/comments_count, UPPER(type) FROM posts LIMIT 10")
 
-# Adding aliases to the new columns
+# Adding aliases to the new columns with AS.
 dbGetQuery(db, "SELECT from_name, CAST(likes_count AS FLOAT) /comments_count AS like_ratio FROM posts LIMIT 10")
 
 # It is often a good idea to write a query in multiple lines so that it is easier to read:
@@ -136,7 +142,8 @@ dbGetQuery(db, "SELECT from_name, CAST(likes_count AS FLOAT) /comments_count AS 
            FROM posts 
            LIMIT 10")
 
-# Selecting unique values from a column
+# Selecting unique values from a column.
+# Remember this keyword, it is really important. 
 dbGetQuery(db, "SELECT DISTINCT from_name 
            FROM posts 
            LIMIT 10")
@@ -152,6 +159,8 @@ Now some examples of how we can use __WHERE__ to subset the database based on va
 
 ```{r}
 # Selecting based on values of a column
+
+# Name and party column from the congress table from Republican politicians.
 dbGetQuery(db, "SELECT name, party 
            FROM congress
            WHERE party = 'Republican'
@@ -171,6 +180,7 @@ dbGetQuery(db, "SELECT from_name, type, date, likes_count
            LIMIT 10")
 
 # OR operator
+# You do not need to use == to assess equality.
 dbGetQuery(db, "SELECT from_name, type, date, comments_count 
            FROM posts
            WHERE comments_count > 100 AND (type = 'photo' OR type = 'video')
@@ -185,6 +195,7 @@ dbGetQuery(db, "SELECT from_name, type, date, comments_count
 # Matching conditions:
 # _ matches exactly one character
 # % matches any number of characters
+# USING THE LIKE OPERATOR
 dbGetQuery(db, "SELECT from_name, type, date, comments_count 
            FROM posts
            WHERE date LIKE '2017-01-__'

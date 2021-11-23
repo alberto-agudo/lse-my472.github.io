@@ -21,6 +21,10 @@ dbGetQuery(db,
   FROM posts JOIN congress
     ON congress.screen_name = posts.screen_name
   LIMIT 10")
+
+# Inner join between posts and congress.
+# Joins them based on the screen name of the politicans.
+# You are getting the likes count, the party, and the date.
 ```
 
 Once we know how to merge tables, we can use columns from both tables. For example, let us say we want to find the most shared post by a Democrat, or by a Republican (more on this in detail in this file). Here is how we would do it:
@@ -33,6 +37,8 @@ dbGetQuery(db,
   WHERE party = 'Democrat'
   ORDER BY shares_count DESC
   LIMIT 1")
+# The message, name, shares_count and party of the post by a Democrat with the highest number of shares.
+
 dbGetQuery(db, 
   "SELECT posts.from_name, posts.message, posts.shares_count, congress.party 
   FROM posts JOIN congress
@@ -40,6 +46,8 @@ dbGetQuery(db,
   WHERE party = 'Republican'
   ORDER BY shares_count DESC
   LIMIT 1")
+# The message, name, shares_count and party of the post by a Democrat with the highest number of shares.
+
 ```
 
 Note that `JOIN` per default performs an `INNER JOIN`, however, it can be clearer to specify the type of join as there are several (left vs right outer joins, ...). We will discuss joins in more detail in this week's class.
@@ -62,6 +70,9 @@ dbGetQuery(db,
   FROM posts
   GROUP BY from_name
   LIMIT 10")
+
+# 10 politicians and their posts per name. 
+# Group by makes the count function work by group. 
 ```
 
 We can then e..g. order the results using __ORDER BY__. The default is alphabetical order for the first column, but we can change that:
@@ -73,6 +84,7 @@ dbGetQuery(db,
   FROM posts
   GROUP BY type
   ORDER BY type_count")
+# Default: Ascending order
 
 # In descending orders
 dbGetQuery(db, 
@@ -175,6 +187,7 @@ dbGetQuery(db,
   "SELECT SUBSTR(date, 9, 2) AS day_of_month, COUNT(*) as post_count
   FROM posts
   GROUP BY day_of_month")
+# Here we are looking only at the characters from the ninth onwards, and selecting the two following (so that we select the days).
 
 ```
 
