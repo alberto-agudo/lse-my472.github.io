@@ -6,32 +6,61 @@ Practice creating a SQL database and querying it. You should use the data in the
 
 ```{r}
 library(DBI)
-db <- dbConnect(...
+library(RSQLite)
+db <- dbConnect(RSQLite::SQLite(), "data/tweet_db.sqlite")
                 
-tweets <- read.csv(_________)
-dbWriteTable(...  
+tweets <- read.csv("data/UK-tweets.csv", stringsAsFactors = FALSE)
+dbWriteTable(db, "tweets", tweets, overwrite = TRUE)
 
-dbListFields(...
-dbGetQuery(__, '_____________________')                
+dbListFields(db, "tweets")
+dbGetQuery(db, 'SELECT * FROM tweets LIMIT 5')                
 ```
 
 2. How many tweets are classified as engaging? (HINT: Use CASE WHEN)
 
 ```{r}
-dbGetQuery(__, 
-  "SELECT ...")
+dbGetQuery(db, 
+  "SELECT COUNT(*) FROM tweets WHERE communication = 'engaging'")
+
+# You could also do:
+dbGetQuery(db,
+           "SELECT SUM(CASE WHEN communication == 'engaging' THEN 1 ELSE 0 END)
+           FROM TWEETS")
 ```
 
 3. What perecent of tweets are classified as impolite?
 
 ```{r}
+dbGetQuery(db,
+           "SELECT CAST(COUNT(*) AS FLOAT) * 100 / (SELECT COUNT(*) FROM TWEETS)
+           FROM TWEETS
+           WHERE polite = 'impolite'"
+           )
 
+# Instead of the cast command you could also have used 100.0 in the multiplication. 
+
+dbGetQuery(db,
+           "SELECT 100.0 * SUM(CASE WHEN polite = 'impolite' THEN 1 ELSE 0 END) / COUNT(*)
+           FROM tweets")
 ```
 
 4. What percent of tweets mention Brexit?
 
 ```{r}
+dbGetQuery(db,
+           "SELECT CAST(COUNT(*) AS FLOAT) * 100 / (SELECT COUNT(*) FROM TWEETS)
+           FROM TWEETS
+           WHERE text LIKE '%Brexit%'")
 
+# Also:
+
+dbGetQuery(db,
+           "SELECT 100.0 * SUM(CASE WHEN text like '%Brexit%' THEN 1 ELSE 0 END) / COUNT(*)
+           FROM tweets")
+
+
+
+# It is case insensitive. By default, when you load a SQL database the columns are not case sensitive. If you want to use a case sensitive command you need to create a command called collate. 
 ```
 
 
@@ -49,25 +78,42 @@ Practice writing using **JOIN** in SQL queries to answer the questions below. Us
 6. How many posts were published each month of the year?
 
 ```{r}
-# db <- dbConnect(RSQLite::SQLite(), "data/facebook-db.sqlite")
+db <- dbConnect(RSQLite::SQLite(), "data/facebook-db.sqlite")
+
 
 dbGetQuery(db, 
-           "SELECT screen_name, message
-           ...")
+           "SELECT SUBSTR(date, 1, 7) AS month,
+           COUNT(*) AS post_count
+           FROM posts
+           GROUP BY month
+           ORDER BY post_count DESC"
+           )
 
 ```
 
+![](sql_order.png)
 
 7. What is the average number of likes for members of the House and the Senate? Which group is more popular on average?
 
 ```{r}
+dbListFields(db, "congress")
+dbGetQuery(db, "SELECT * FROM congress LIMIT 5")
+dbGetQuery(db, "SELECT * FROM posts LIMIT 5")
 
+dbGetQuery(db,
+           "SELECT congress.type, AVG(posts.likes_count) AS average_likes
+           FROM  posts JOIN congress
+           WHERE posts.screen_name = congress.screen_name
+           GROUP BY congress.type")
 ```
 
 8. What is the average number of likes that posts receive based on the time of the day in which they were published?
 
 ```{r}
-
+# CONTINUE
+dbGetQuery(db, "SELECT SUBSTR(datetime, 12, 2)
+           FROM POSTS
+           LIMIT 5")
 
 ```
 
@@ -100,9 +146,10 @@ Practice writing SQL queries that answer the following questions using the datab
 # db <- dbConnect(RSQLite::SQLite(), "data/facebook-db.sqlite")
 
 dbGetQuery(db, 
-           "SELECT screen_name, message
-           ...")
-
+           "SELECT screen_name, message, shares_count
+           FROM posts
+           ORDER BY shares_count DESC
+           LIMIT 1")
 ```
 
 13. What about the post with the most comments?
