@@ -6,11 +6,13 @@ Practice writing using **JOIN** in SQL queries to answer the questions below. Us
 
 ```{r}
 library(DBI)
+library(RSQLite)
 db <- dbConnect(RSQLite::SQLite(), "data/facebook-db.sqlite")
 
 dbGetQuery(db, 
-           "SELECT screen_name, message
-           ...")
+           "SELECT SUBSTR(date, 6, 2) AS month, COUNT(*) AS n_posts
+           FROM posts 
+           GROUP BY month")
 
 ```
 
@@ -18,32 +20,64 @@ dbGetQuery(db,
 2. What is the average number of likes for members of the House and the Senate? Which group is more popular on average?
 
 ```{r}
-
+dbGetQuery(db,
+           "SELECT congress.type, AVG(posts.likes_count) 
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           GROUP BY congress.type")
 ```
 
 3. What is the average number of likes that posts receive based on the time of the day in which they were published?
 
 ```{r}
-
+dbGetQuery(db,
+           "SELECT SUBSTR(datetime, 12, 2) AS hour, AVG(likes_count)
+           FROM posts 
+           GROUP BY hour")
 
 ```
 
 4. Do women receive more comments than men on average?
 
 ```{r}
-
+dbGetQuery(db,
+           "SELECT congress.gender, AVG(posts.comments_count)
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           GROUP BY congress.gender")
 ```
 
 5. For each type of reaction (haha, love, angry...) compute the average count by party. Are there any systematic differences?
 
 ```{r}
-
+dbGetQuery(db,
+           "SELECT congress.party, AVG(posts.likes_count), AVG(posts.comments_count), AVG(posts.shares_count),
+           AVG(posts.love_count), AVG(posts.haha_count), AVG(posts.wow_count), AVG(posts.sad_count), AVG(posts.angry_count)
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           GROUP BY congress.party")
 ```
 
 6. Compute the total number of "sad" reactions for each domain shared by Republicans. Display the top 10 domains that receive the most "sad" reactions. Then repeat the same for Democrats. What do you find?
 
 ```{r}
+dbGetQuery(db,
+           "SELECT posts.domain, SUM(posts.sad_count) AS n_sad_reactions
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           WHERE congress.party = 'Republican' AND posts.domain NOT NULL
+           GROUP BY posts.domain
+           ORDER BY n_sad_reactions DESC
+           LIMIT 10")
 
+dbGetQuery(db,
+           "SELECT posts.domain, SUM(posts.sad_count) AS n_sad_reactions
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           WHERE congress.party = 'Democrat' AND posts.domain NOT NULL
+           GROUP BY posts.domain
+           ORDER BY n_sad_reactions DESC
+           LIMIT 10")
 ```
 
 

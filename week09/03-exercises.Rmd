@@ -67,7 +67,11 @@ dbGetQuery(db,
 5. Compute the average number of followers for tweets that are impolite and polite.
 
 ```{r}
-
+dbGetQuery(db, "SELECT AVG(followers_count) AS avg_followers, polite 
+           FROM tweets 
+           WHERE polite NOT NULL
+           GROUP BY polite
+           ")
 ```
 
 
@@ -111,28 +115,48 @@ dbGetQuery(db,
 
 ```{r}
 # CONTINUE
-dbGetQuery(db, "SELECT SUBSTR(datetime, 12, 2)
-           FROM POSTS
-           LIMIT 5")
+dbGetQuery(db, "SELECT SUBSTR(datetime, 12, 2) AS hour, AVG(likes_count) AS avg_like_count
+           FROM posts
+           GROUP BY hour")
 
 ```
 
 9. Do women receive more comments than men on average?
 
 ```{r}
+dbListFields(db, "posts")
+dbGetQuery(db, "SELECT congress.gender AS gender, AVG(posts.comments_count) AS avg_comments_count
+           FROM posts JOIN congress
+           ON posts.screen_name = congress.screen_name
+           GROUP BY congress.gender")
 
+# It does not look like, both genders receive the same comments engagement.  
 ```
 
 10. For each type of reaction (haha, love, angry...) compute the average count by party. Are there any systematic differences?
 
 ```{r}
-
+dbGetQuery(db, 
+          "SELECT congress.party, AVG(posts.likes_count), AVG(posts.comments_count), AVG(posts.shares_count),
+           AVG(posts.love_count), AVG(posts.haha_count), AVG(posts.wow_count), AVG(posts.sad_count), AVG(posts.angry_count)
+           FROM posts JOIN congress
+           ON posts.screen_name = congress.screen_name
+           GROUP BY congress.party
+           ")
 ```
 
 11. Compute the total number of "sad" reactions for each domain shared by Republicans. Display the top 10 domains that receive the most "sad" reactions. Then repeat the same for Democrats. What do you find?
 
 ```{r}
+dbGetQuery(db, "SELECT posts.domain, SUM(posts.sad_count) AS sad_posts
+           FROM posts JOIN congress
+           ON posts.screen_name 
+           WHERE congress.party = 'Republican' AND posts.domain NOT NULL
+           GROUP BY posts.domain
+           ORDER BY sad_posts DESC
+           LIMIT 10")
 
+# The cnn is the media that generates most sad reactions. 
 ```
 
 
@@ -155,33 +179,71 @@ dbGetQuery(db,
 13. What about the post with the most comments?
 
 ```{r}
-
+dbGetQuery(db,
+       "SELECT screen_name, message, comments_count
+       FROM posts
+       ORDER BY comments_count DESC
+       LIMIT 1")
 
 ```
 
 14. Which was the post that received the most likes in January of 2017?
 
 ```{r}
-
+dbGetQuery(db,
+           "SELECT screen_name, message, link, likes_count
+           FROM posts
+           WHERE date LIKE '2017-01-__'
+           ORDER BY likes_count DESC
+           LIMIT 1")
 
 ```
 
 15. What was the photo posted by a Member of Congress that received the most "angry" reactions?
 
 ```{r}
-
+dbGetQuery(db,
+           "SELECT screen_name, message, type, link, angry_count
+           FROM posts
+           WHERE type = 'photo'
+           ORDER BY angry_count DESC
+           LIMIT 1")
 ```
 
 16. What was the post by `senatorsanders` that received the most "angry" reactions? And the most "love" reactions?
 
 ```{r}
+dbGetQuery(db,
+           "SELECT screen_name, message, link, angry_count, likes_count, shares_count, comments_count
+           FROM posts
+           WHERE screen_name = 'senatorsanders'
+           ORDER BY angry_count DESC
+           LIMIT 1")
 
+dbGetQuery(db,
+           "SELECT screen_name, message, link, angry_count, love_count, shares_count, comments_count, likes_count
+           FROM posts
+           WHERE screen_name = 'senatorsanders'
+           ORDER BY love_count DESC
+           LIMIT 1")
 ```
 
 17. Which was the post mentioning "Trump" that was shared the most? And which was the post that received the most "love" reactions?
 
 ```{r}
+dbGetQuery(db,
+           "SELECT screen_name, message, link, shares_count
+           FROM posts
+           WHERE message LIKE '%Trump%'
+           ORDER BY shares_count DESC
+           LIMIT 1")
 
+dbGetQuery(db,
+           "SELECT screen_name, message, link, love_count
+           FROM posts
+           WHERE message LIKE '%Trump%'
+           ORDER BY love_count DESC
+           LIMIT 1")
 ```
 
 

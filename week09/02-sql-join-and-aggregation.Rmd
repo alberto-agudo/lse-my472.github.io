@@ -183,6 +183,7 @@ dbGetQuery(db,
   GROUP BY congress.party")
 
 # Number of posts by day of the month (recall, the date format is: YYYY-MM-DD)
+# substr(column, index_to_start, number of letters/numbers to extract) 
 dbGetQuery(db, 
   "SELECT SUBSTR(date, 9, 2) AS day_of_month, COUNT(*) as post_count
   FROM posts
