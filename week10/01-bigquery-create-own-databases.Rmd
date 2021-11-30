@@ -18,13 +18,13 @@ First, we need to create a project with the BigQuery sandbox as described [here]
 
 ```{r}
 # Project name (project ID)
-project_name <- "tba"
+project_name <- "third-pen-333710"
 
 # Billing (project ID)
-billing_id <- "tba"
+billing_id <- "third-pen-333710"
 
 # Dataset name (created on website)
-dataset_name <- "tba"
+dataset_name <- "facebook"
 ```
 
 We can now use the `DBI` package and syntax that we have used before to access our online database, add and delete tables, and run queries.
@@ -66,4 +66,5 @@ Just like last week, R Markdown also allows to run these queries directly in its
 SELECT * FROM congress LIMIT 5
 ```
 
+Billed shows you how much of your monthly credit account you have spent. 
 

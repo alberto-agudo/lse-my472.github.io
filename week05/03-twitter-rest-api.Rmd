@@ -5,6 +5,9 @@ date: "25/10/2021"
 output: html_document
 ---
 
+NOTE: How to process videos or images from social media (YT, Twitter)? It is a bit crazy to convert an image into a Tensor by yourself (a Tensor is a three-dimensional matrix where you have the 2D 100x100 pixels image + another dimension of RGB colours (vectors of three n)). So, normally, you would resort to specific functions or packages that are created to address these needs. Afterwards, you could process with CNNs. 
+
+
 In this file, we will look at static Twitter data, either recent tweets or user-level information. This type of data can be retrieved with Twitter's REST API. We will use the `rtweet` package here.
 
 Loading packages:

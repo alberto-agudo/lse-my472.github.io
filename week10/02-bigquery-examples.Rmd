@@ -7,6 +7,8 @@ output: html_document
 
 In this file we will continue practicing how to query online databases with SQL. We will use our BigQuery setup from the previous document with two public databases to demonstrate queries for large datasets.
 
+These are not toy datasets, maybe they are not complete but still allow you some analysis of historical data. 
+
 Loading packages:
 
 ```{r}
@@ -25,7 +27,7 @@ This dataset contains the number of crimes at two different geographic levels of
 project_name <- "bigquery-public-data"
 
 # Billing (main project ID)
-billing_info <- "my472-333417"
+billing_info <- "third-pen-333710"
 
 # Dataset name (London crime database within the public databases)
 dataset_name <- "london_crime"
@@ -40,6 +42,9 @@ db <- dbConnect(
   dataset = dataset_name,
   billing = billing_info
 )
+
+# The DBI package wraps the bigquery query inside.
+# It is a more convenient wrapping than in Python. 
 db
 ```
 
@@ -67,6 +72,7 @@ View(data_plot_1)
 ```
 
 ```{r fig.width=7, fig.height=4, echo=FALSE}
+# normalized time series of crime per borough
 data_plot_1 %>% group_by(borough) %>%
   mutate(ratio = count_crime/count_crime[year == 2008]) %>%
 ggplot(aes(x = year, y = ratio, color = borough)) + geom_line()
@@ -98,8 +104,9 @@ crime_per_lsoa_code
 ```{r}
 
 # Download the shape file from https://data.london.gov.uk/dataset/statistical-gis-boundary-files-london and unzip
-shp <- readOGR(dsn = "~/Downloads/statistical-gis-boundaries-london/ESRI/LSOA_2011_London_gen_MHW.shp",
+shp <- readOGR(dsn = "data/statistical-gis-boundaries-london/ESRI/LSOA_2011_London_gen_MHW.shp",
                stringsAsFactors = FALSE)
+# the readOGR function belongs to the rgdal package
 
 # Obtaining longitude and latitude (contains an ID column, but starting at zero!)
 shp_fort <- fortify(shp)
@@ -110,6 +117,9 @@ shp_fort <- fortify(shp)
 
 data_plot_3 <- shp@data %>%
   mutate(id = 0:(nrow(shp@data)-1)) %>% # add an id column also to shp@data
+  # Here it is using a Pythonic index because it is the shape that the shp file has.
+  
+  # merge automatically uses an inner join. 
   merge(shp_fort, by = "id") %>% # merge with longitude and latitude data based on this column
   merge(crime_per_lsoa_code, by.x = "LSOA11CD", by.y = "lsoa_code") # merge with crime data
 
@@ -172,6 +182,7 @@ dbGetQuery(db, "SELECT start_station_name, COUNT(*) AS count_start
 3. What is the average trip duration of a CitiBike trip in NYC? For advanced keywords like these, see the detailed [documentation](https://cloud.google.com/bigquery/docs/reference/standard-sql/timestamp_functions).
 
 ```{r}
+# TIMESTAMP_DIFF, difference between end and beginning, stores the difference in minutes. 
 dbGetQuery(db, "SELECT AVG( TIMESTAMP_DIFF(stoptime, starttime, MINUTE) )
            AS duration_minutes
            FROM citibike_trips")
@@ -196,9 +207,12 @@ dbGetQuery(db, "SELECT gender, AVG( TIMESTAMP_DIFF(stoptime, starttime, MINUTE) 
   GROUP BY gender")
 ```
 
+The duration of the average 
+
 6. What is the average distance of a trip?
 
 ```{r}
+# Why do you multiply latitude + longitude by 111?
 dbGetQuery(db, "SELECT AVG( (ABS(start_station_latitude-end_station_latitude) +
       ABS(start_station_longitude-end_station_longitude)) * 111) AS avg_distance_km
   FROM citibike_trips")
@@ -213,23 +227,4 @@ dbGetQuery(db, "SELECT gender, AVG( (ABS(start_station_latitude-end_station_lati
   GROUP BY gender")
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Females tend to cycle longer distances, which explains the differences in the minutes of bike rides. 

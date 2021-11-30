@@ -85,6 +85,7 @@ for (f in fls){
   posts$datetime <- parse_datetime(posts$datetime)
   
   # Merge with congress table information
+  # For each group of posts, you join the information of the congress data with the info of the posts dataset (you are creating duplicates).
   posts <- congress %>% inner_join(posts, by = "screen_name") 
   posts$message <- stri_unescape_unicode(posts$message) # solve some encoding issues
   
@@ -137,6 +138,8 @@ Let's start with some examples of __SELECT__:
 ```{r}
 # Querying just one column
 collection$find(query = '{}', fields = '{"name": true}', limit = 10)
+# The id field appears because it is used to identify each document (row).
+# I think that the query('{}') is like the where, it filters rows. 
 
 dbGetQuery(dbsql, "SELECT name FROM congress LIMIT 10")
 ```
@@ -191,6 +194,8 @@ dbGetQuery(dbsql, "SELECT from_name, type, date, comments_count
 MongoDB does support regular expressions, for options see https://docs.mongodb.com/manual/reference/operator/query/regex/. This can be very helpful for queries.
 
 ```{r}
+# Here it is saying: . (any character), {2} two times.
+# Also the $options: "i" is referring to case-insensitive. 
 collection$find(query = '{"date": {"$regex": "2017-01-.{2}", "$options": "i"}}', 
         fields = '{"from_name": true, "type": true, "date": true, "likes_count": true}', 
         limit = 10)
@@ -227,6 +232,7 @@ dbGetQuery(dbsql, "SELECT from_name, type, date
            LIMIT 10")
 
 # Specifying the date is a bit too complicated, needs to convert the date into milliseconds
+# He did not give it importance.
 d <- as.integer(as.POSIXct(strptime("2017-01-01", "%Y-%m-%d"))) * 1000
 collection$find(query = paste0('{"datetime": {"$gt": {"$date": {"$numberLong": "', d, '" } } } }'), 
         fields = '{"from_name": true, "type": true, "date": true}', 
@@ -237,7 +243,9 @@ When some aggregation is involved (e.g. `COUNT` or `GROUP BY`), use `*$aggregate
 
 ```{r}
 collection$aggregate('[ {"$group": {"_id": "$from_name", "count": {"$sum": 1}}},
-                  {"$limit": 10} ]')
+                  {"$sort": {"_id": 1}} ,{"$limit": 10} ]')
+
+# Here you see that "$sum":1, it means that we count each row with 1. 
 
 dbGetQuery(dbsql, 
   "SELECT from_name, COUNT(*) AS post_count
@@ -247,12 +255,15 @@ dbGetQuery(dbsql,
 
 
 # Conditional aggregate (only Republican politicians)
+# Using a where condition. 
 collection$aggregate('[{ "$match": {"party": "Republican"}}, 
                   {"$group": {"_id": "$from_name", "count": {"$sum": 1}}},
                   {"$limit": 10}]')
 ```
 
 Like __ORDER BY__, we can use `"$sort"` after find or aggregate.
+
+Here sort specifies the order_by clause of SQL. 1 Means ascending order and -1 descending order. 
 
 ```{r}
 # Sort by type_count
@@ -295,8 +306,11 @@ Highest comment to like ratio:
 ```{r}
 # We subset only posts with 1000 likes or more to avoid outliers
 
+
+# The project operator works as field when there is no group variable. 
+# Here aggregate is used because it is necessary when there is any sort of operation. 
 collection$aggregate('[{"$match" : {"likes_count": {"$gt": 1000}}},
-                  {"$project": {"from_name": true, "message": true, "likes_count": true, "comments_count": true, "date": true,
+                  {"$project": {"from_name": true, "message": true, "likes_count": true, "comments_count": true, "date": true, "party":true,
                   "comment_like_ratio": {"$divide": ["$comments_count", "$likes_count"]}}},
                   {"$sort": {"comment_like_ratio": -1}},
                   {"$limit": 5}]') 
@@ -334,6 +348,17 @@ another_collection$find(query = '{}', sort = '{"screen_name": -1}',limit=5)
 
 Merging this `additional_data` collection into our base collection `congress_posts_2017` is possible via the `$lookup`. It performs a left outer join of the collection linked to the `collection` object and a second collection specified in `from`:
 
+Here:
+$project shows you which fields you select. 
+$lookup (command to start the join operator.
+$localField: Field on your local collection that you will use as a joining key.
+$from: is the right-hand collection that you'll be joining. 
+$foreignField: foreign key
+$as: additional_data (name of the collection included in your original collection).
+
+Because it is not a tabular dataset, each document contains another document. Each field can save entire documents or JSON objects.
+Additional_data is a dataframe. 
+
 ```{r}
 join_output <- collection$aggregate('[
     { "$project": {"screen_name": true, "type": true}},
@@ -363,6 +388,8 @@ microbenchmark(sqlite =
 mongo = collection$find(query = '{"type": {"$ne": "photo"}, "likes_count": {"$gt": 500}}', 
         fields = '{"from_name": true, "type": true, "date": true, "likes_count": true}', 
         limit = 10), times = 200)
+# Average time in Mongo is twice as large.
+# It specifies the unit of output.
 ```
 
 
@@ -383,6 +410,8 @@ microbenchmark(sqlite =
 times = 50)
 ```
 
+
 We would need more tuning for the MongoDB (e.g. add index, etc.) and we have to keep in mind that we run this in R with dataframes tables that do not really resemble the BSON format. But not too bad.
 
+It is expressed in milliseconds. Already averaged out.
 
