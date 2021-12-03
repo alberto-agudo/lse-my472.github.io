@@ -512,3 +512,6 @@ week09/data/posts/UsRepRickNolan.csv
 week09/data/posts/USSenatorLindseyGraham.csv
 week09/data/posts/WhipHoyer.csv
 week09/data/posts/zoelofgren.csv
+*.sqlite
+*.csv
+*.atx
