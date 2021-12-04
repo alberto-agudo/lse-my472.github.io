@@ -186,6 +186,11 @@ dbGetQuery(db, "SELECT start_station_name, COUNT(*) AS count_start
 dbGetQuery(db, "SELECT AVG( TIMESTAMP_DIFF(stoptime, starttime, MINUTE) )
            AS duration_minutes
            FROM citibike_trips")
+
+# Or also:
+dbGetQuery(db, "SELECT AVG(tripduration) / 60
+           AS duration_minutes
+           FROM citibike_trips")
 ```
 
 4. What is the average trip duration based on the hour of the day when they start?

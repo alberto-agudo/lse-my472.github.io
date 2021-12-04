@@ -4,7 +4,7 @@ In last week's class, we learned simple join. Sometimes, for some of the rows yo
 
 For your reference, the figure below shows different types of joins and how to run the query for each type.
 
-![joins](joins.png)
+![jxoins](joins.png)
 
 ## Get a random sample from the Facebook dataset
 
@@ -13,9 +13,9 @@ Run the code below to create a SQLite database that contains a random sample of 
 ```{r, eval = F}
 library(DBI)
 # create database: this will create a file on our hard drive
-db <- dbConnect(RSQLite::SQLite(), "~/data/facebook-db-mini.sqlite")
+db <- dbConnect(RSQLite::SQLite(), "data/facebook-db-mini.sqlite")
 # reading the first file
-congress <- read.csv("~/data/congress-facebook-2017.csv",
+congress <- read.csv("data/congress-facebook-2017.csv",
 	stringsAsFactors=F)
 
 # this determines the seed in the pseudo-random number generator
@@ -34,7 +34,7 @@ dbGetQuery(db, 'SELECT * FROM congress LIMIT 5')
 
 ```{r, eval = F}
 
-fls <- list.files("~/data/posts", full.names=TRUE)
+fls <- list.files("data/posts", full.names=TRUE)
 set.seed(20191212)
 
 for (f in fls){
@@ -64,31 +64,80 @@ dbDisconnect(db)
 ```{r}
 library(DBI)
 library(tidyverse)
-db <- dbConnect(RSQLite::SQLite(), "~/data/facebook-db-mini.sqlite")
+db <- dbConnect(RSQLite::SQLite(), "data/facebook-db-mini.sqlite")
 ```
 
 1. How many rows are there in each table?
 ```{r}
+dbGetQuery(db,
+           "SELECT COUNT(*)
+            FROM congress")
 
+dbGetQuery(db,
+           "SELECT COUNT(*)
+            FROM posts")
 ```
 
 2. How many rows do you get when use `JOIN` to join posts with congress? What kind of join is this? What does this tell us about the data we have?
 ```{r}
+dbGetQuery(db,
+           "SELECT COUNT(*)
+           FROM posts JOIN congress
+           ON posts.screen_name = congress.screen_name")
 
+# Now we have a table of 1787 rows instead of 8530. This is an inner join. It says that from the 8530 posts, we only have information about the status of the politicians in 1787 of them. Or, in other words, the 100 politicians that we have in our sample have posted 1787 different posts as compared with the total of 8530. 
 ```
 
 3. How many members of congress do not have any posts?
 ```{r}
-
+dbGetQuery(db,
+           "SELECT COUNT(*)
+           FROM congress LEFT JOIN posts
+           ON congress.screen_name = posts.screen_name
+           WHERE posts.screen_name IS NULL")
 ```
 
 4. How many authors of posts cannot be matched to the members of congress we have in the database?
 ```{r}
+dbGetQuery(db,
+           "SELECT COUNT(DISTINCT posts.screen_name)
+           FROM posts")
 
+
+dbGetQuery(db,
+           "SELECT COUNT(DISTINCT posts.screen_name)
+           FROM posts LEFT JOIN congress
+           ON posts.screen_name = congress.screen_name
+           WHERE congress.screen_name IS NULL")
+
+# 403 out of the 500 authors of posts could not be matched. 
 ```
 
 5. What would you do to create a table that is equivalent to the result of a FULL OUTER JOIN? Hint: look up UNION ALL.
 ```{r}
+#dbGetQuery(db,
+#           "SELECT *
+#           FROM congress FULL OUTER JOIN posts
+#           ON congress.screen_name = posts.screen_name
+#           LIMIT 5")
+
+# FULL OUTER JOIN is not currently supported 
+dbGetQuery(db,
+           "SELECT * 
+           FROM congress LEFT JOIN posts
+           ON congress.screen_name = posts.screen_name
+           WHERE posts.screen_name IS NULL
+           UNION ALL
+           SELECT * 
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           UNION ALL
+           SELECT * 
+           FROM posts LEFT JOIN congress
+           ON congress.screen_name = posts.screen_name
+           WHERE congress.screen_name IS NULL")
+
+# First, we get the left outer join, then the inner join, and finally the right outer join. We merge them all together and in this way we wouldn't have duplicates. 
 
 ```
 

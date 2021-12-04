@@ -4,33 +4,75 @@
 
 We will use the NYC Bicycle Hire data we looked at in lecture. The database contains all Citi Bike trips (NYC's bike-sharing service) since Citi Bike launched in September 2013. 
 
+```{r}
+library("DBI")
+library("bigrquery")
+```
+
 
 ## Queries
+
+```{r}
+project_name <- "bigquery-public-data"
+
+billing_name <- "third-pen-333710"
+
+dataset_name <- "new_york_citibike"
+```
+
 
 1. First, connect to the database and see the first 5 entries.
 
 ```{r}
-
-
+db <- dbConnect(bigrquery::bigquery(),
+                project = project_name,
+                billing = billing_name,
+                dataset = dataset_name)
+dbGetQuery(db, 
+           "SELECT * FROM citibike_trips LIMIT 5")
 ```
 
 2. What is the average trip duration based on the age of the riders?
 
 ```{r}
+dbListFields(db, "citibike_trips")
+```
 
+
+```{r}
+dbGetQuery(db,
+           "SELECT birth_year, AVG(tripduration) / 60 AS avg_trip_duration
+           FROM citibike_trips
+           GROUP BY birth_year
+           ORDER BY avg_trip_duration")
 
 ```
 
 3. What is the average distance of a CitiBike trip based on the age of the riders?
 
 ```{r}
-
+dbGetQuery(db,
+          "SELECT birth_year, AVG( 
+          (ABS(end_station_longitude - start_station_longitude) + 
+           ABS(end_station_longitude -end_station_longitude) )
+           * 111) AS trip_distance
+           FROM citibike_trips
+           GROUP BY birth_year
+           ORDER BY trip_distance DESC")
 
 ```
 
 4. What is the average speed of a CitiBike trip?
 
 ```{r}
+dbGetQuery(db,
+          "SELECT AVG(trip_distance) / AVG(hours) AS speed_km_h
+          FROM(SELECT 
+          (ABS(end_station_longitude - start_station_longitude) + 
+           ABS(end_station_longitude -end_station_longitude) )
+           * 111 AS trip_distance, 
+           tripduration / 3600.0 AS hours
+           FROM citibike_trips)")
 
 
 ```
@@ -38,7 +80,17 @@ We will use the NYC Bicycle Hire data we looked at in lecture. The database cont
 5. What is the average speed based on age?
 
 ```{r}
-
+dbGetQuery(db,
+          "SELECT birth_year,
+          AVG(trip_distance) / AVG(hours) AS speed_km_h
+          FROM(SELECT birth_year,
+          (ABS(end_station_longitude - start_station_longitude) + 
+           ABS(end_station_longitude -end_station_longitude) )
+           * 111 AS trip_distance, 
+           tripduration / 3600.0 AS hours
+           FROM citibike_trips)
+          GROUP BY birth_year
+          ORDER BY speed_km_h DESC")
 
 ```
 
