@@ -11,36 +11,97 @@ In SQL, you can run a nested query where you use a result from the first query a
 
 ```{r}
 # load required libraries and connect to facebook-db.sqlite
-
+library(DBI)
+library(RSQLite)
+library(microbenchmark)
+db <- dbConnect(RSQLite::SQLite(), "data/facebook-db-mini.sqlite")
 ```
 
 1. What are the screen names of the top 3 posters?
 ```{r}
+# It only shows the screen names of the politicians who posted more or equal than the FIRST of the three. WHen using HAVING >= How can I solve this?
+# When using IN we retrieve all politicians who have these post counts. We only want the three that appear.
+dbGetQuery(db,
+           "SELECT screen_name
+           FROM posts
+           GROUP BY screen_name
+           HAVING COUNT(*) IN (SELECT COUNT(*)
+           FROM posts
+           GROUP BY screen_name
+           ORDER BY COUNT(*) DESC
+           LIMIT 3)")
 
+# Here is how I would do it without a subquery.
+dbGetQuery(db,
+           "SELECT screen_name
+           FROM posts
+           GROUP BY screen_name
+           ORDER BY COUNT(*) DESC
+           LIMIT 3")
 ```
 
 2. (Without subquery) how can you get the posts from these congress members?
 ```{r}
+dbGetQuery(db,
+           "SELECT *
+           FROM posts
+           WHERE screen_name IN ('CongressmanNadler', 'SenatorHeidiHeitkamp', 'RepMikeThompson')")
 
 ```
 
 3. Now, instead of hardcoding the screen_names in the conditional statement, use the query results in #1 as the subquery. 
 ```{r}
-
+# With subquery
+dbGetQuery(db,
+           "SELECT *
+           FROM posts
+           WHERE screen_name IN (SELECT screen_name 
+           FROM posts
+           GROUP BY screen_name
+           ORDER BY COUNT(*) DESC
+           LIMIT 3)
+           ")
 ```
 
 4. Using a subquery, get the average number of likes per post for all women Democrats.
 ```{r}
-
+dbGetQuery(db,
+           "SELECT AVG(likes_count)
+           FROM posts
+           WHERE screen_name IN (
+           SELECT screen_name
+           FROM congress
+           WHERE gender = 'F' AND party = 'Democrat'
+           )"
+           )
 ```
 
 5. Now use a join to do the same as in #4.
 ```{r}
-
+dbGetQuery(db,
+           "SELECT AVG(posts.likes_count)
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           WHERE congress.gender = 'F' AND congress.party = 'Democrat'")
 ```
 
 6. Which solution is faster: the one in #4 or #5?
 
 ```{r}
+microbenchmark(dbGetQuery(db,
+           "SELECT AVG(likes_count)
+           FROM posts
+           WHERE screen_name IN (
+           SELECT screen_name
+           FROM congress
+           WHERE gender = 'F' AND party = 'Democrat'
+           )"), times = 100)
+microbenchmark(dbGetQuery(db,
+           "SELECT AVG(posts.likes_count)
+           FROM congress JOIN posts
+           ON congress.screen_name = posts.screen_name
+           WHERE congress.gender = 'F' AND congress.party = 'Democrat'"),
+           times = 100)
 
+# Median of 6 milliseconds compared with a median of 18 milliseconds. Using subqueries is three times faster than using joins.
 ```
