@@ -9,6 +9,7 @@ required_packages = c("DBI", "RSQLite", "xml2", "rvest", "lubridate")
 # Create folder for libraries if it does not exist and set library path
 library_directory <- "/home/ec2-user/r_libraries/" # can be adjusted
 if (!file.exists(library_directory)){dir.create(library_directory)}
+# Here .libPaths is setting the library_directory as the directory where all packages will be installed.
 .libPaths(library_directory)
 
 # Installing packages

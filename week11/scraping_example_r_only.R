@@ -28,7 +28,8 @@ if (file.exists("featured_articles.csv") == FALSE)
 # Scraping around the following hours 0 - 23
 target_hours <- c(9) # check system time zone with Sys.time()
 
-# Target items
+# Target items. Number of feature articles that we
+# want to scrape. 
 n <- 10000
 
 # While loop
@@ -39,9 +40,11 @@ while(i < n) {
   Sys.sleep(60 * 60)
   
   # Check whether current hour is in target hours
+  # CHECK THE TIMEZONE!
+  # it means that, otherwise, it won't scrape
   if (hour(Sys.time()) %in% target_hours) {
     
-    # Creating a data frame with one row
+    # Creating a data frame with one row, date, summary of the article and the link of the article
     df <- data.frame(date = as_datetime(Sys.time()), summary = NA, link = NA)
     
     # Reading the HTML code
@@ -63,6 +66,7 @@ while(i < n) {
     dbWriteTable(db, "featured_articles", df, append = TRUE)
     
     # Option ii: Append as row to csv
+    # without creating new rownames or colnames, since they were already created.
     write.table(df, file="featured_articles.csv", 
                 append = TRUE,
                 row.names = FALSE,
@@ -92,6 +96,12 @@ read.csv("featured_articles.csv") %>% as_tibble()
 
 # Disconnect from database
 dbDisconnect(db)
+
+# You can log out and the server will still be
+# running your query. 
+
+# Without the free tier option you must take a look at
+# what is your machine doing, since the costs can soar.
 
 
 
