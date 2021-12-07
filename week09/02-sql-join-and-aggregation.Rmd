@@ -46,7 +46,7 @@ dbGetQuery(db,
   WHERE party = 'Republican'
   ORDER BY shares_count DESC
   LIMIT 1")
-# The message, name, shares_count and party of the post by a Democrat with the highest number of shares.
+# The message, name, shares_count and party of the post by a Republican with the highest number of shares.
 
 ```
 
@@ -75,7 +75,7 @@ dbGetQuery(db,
 # Group by makes the count function work by group. 
 ```
 
-We can then e..g. order the results using __ORDER BY__. The default is alphabetical order for the first column, but we can change that:
+We can then e.g. order the results using __ORDER BY__. The default is alphabetical order for the first column, but we can change that:
 
 ```{r}
 # Sort by type_count
@@ -86,7 +86,7 @@ dbGetQuery(db,
   ORDER BY type_count")
 # Default: Ascending order
 
-# In descending orders
+# In descending order
 dbGetQuery(db, 
   "SELECT type, COUNT(type) AS type_count
   FROM posts
