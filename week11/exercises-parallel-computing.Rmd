@@ -83,6 +83,8 @@ time_lapply
 ### Parallel execution
 Now, let us try parallelizing the process across (almost) all our cores!
 
+**mclapply()**
+
 ```{r}
 
 numCores <- detectCores() - 1       # to avoid crashing I use - 1
@@ -97,6 +99,8 @@ time_mclapply
 ```
 
 That is quite a substantial time reduction on this task. For me, it ran approximately 3.5-times faster than with serial execution.
+
+Overhead, distributing the tasks between a number of cores also takes some time.
 
 ## Expected speedup?
 Reductions in time are, however, not always so easy to understand. For some problems, there might be "perfect scaling" — adding another processor will decrease the computational time by the same amount as before. For other problems, the efficiency of adding another processor might decrease (there is overhead that reduces efficiency). This is beyond this course, but check out [Amdahl's Law](https://en.wikipedia.org/wiki/Amdahl%27s_law) to learn more
@@ -176,7 +180,7 @@ We get a completely opposite result! Parallelizing an extremely simple operation
 ### More advanced
 Load balancing is one of the common problems for parallel computing. Imagine you have 2 cores and 4 tasks in increasing complexity. First two (less complex) computations get assigned to the first core, while last two (more complex) get assigned to the second core. The first core finishes much sooner than the second and then stays idle - bad load balance.
 
-By default, tasks are distributed ahead in order to minimize overhead. If you know in advance that different run-times might be a problem, you can switch to dynamic scheduling. This is supported by `mclapply()`.
+By default, tasks are distributed ahead in order to minimize overhead. If you know in advance that different run-times might be a problem, you can switch to **dynamic scheduling**. This is supported by `mclapply()`.
 
 ```{r}
 # Static scheduling - before the computation is run
@@ -201,7 +205,7 @@ Another problem you can run into is memory. Although computation gets distribute
 - keep only results/estimated coefficients/model summaries, not whole objects
 - you can use `rm()` on objects you are not going to use anymore
 - check object size with `object.size()`
-- use functions as much as you can (variables are deleted automatically when function finishes executing)
+- use functions as much as you can **(variables are deleted automatically when function finishes executing)**
 
 Other packages that you might want to try are `foreach` and `doParallel`. They use syntax that is close to `for()` loops, therefore might be easier to understand to some. Let us try them with a simple script that takes `sqrt()`. Again, the expectation is that the parallel version here will take longer because of the overhead.
 
@@ -213,15 +217,16 @@ suppressWarnings(library(doParallel))
 registerDoParallel(numCores)
 
 # Serial execution
+# The .combine argument would have the same behaviour as a do.call(rbind).
 system.time({
-  foreach (i = 1:3, .combine=rbind) %do% {   # %do% = serial
+  foreach (i = 1:3, .combine=rbind) %do% {   # %do% = serial execution
     sqrt(i)
   }
 })
 
 # Parallel execution
 system.time({
-  foreach (i = 1:3, .combine=rbind) %dopar% {   # %dopar% = parallel
+  foreach (i = 1:3, .combine=rbind) %dopar% {   # %dopar% = parallel execution
     sqrt(i)
   }
 })
