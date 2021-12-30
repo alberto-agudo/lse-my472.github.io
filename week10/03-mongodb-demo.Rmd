@@ -196,6 +196,7 @@ MongoDB does support regular expressions, for options see https://docs.mongodb.c
 ```{r}
 # Here it is saying: . (any character), {2} two times.
 # Also the $options: "i" is referring to case-insensitive. 
+
 collection$find(query = '{"date": {"$regex": "2017-01-.{2}", "$options": "i"}}', 
         fields = '{"from_name": true, "type": true, "date": true, "likes_count": true}', 
         limit = 10)

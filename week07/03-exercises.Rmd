@@ -22,7 +22,7 @@ str_view_all(uol_postcodes, "[A-Z]{1,2}\\d\\w?\\s?\\d[A-Z]{2}")
 1.2 Next, let us try to mute/delete the second part of each postcode. Add a capturing group to your regular expression with which you can address only the first part, i.e. the first 2-4 characters of the postcodes. Then use find & replace in your text editor and replace all postcodes with only the information stored in capturing group 1. This deletes the second part of each postcode.
 
 ```{r}
-str_replace_all(uol_postcodes, "([A-Z]{1,2}\\d\\w?)\\s?\\d[A-Z]{2}", "\\1")
+str_extract_all(uol_postcodes, "([A-Z]{1,2}\\d\\w?)\\s?\\d[A-Z]{2}", "\\1")
 # Here you are replacing all the regex by the first captured group (which lasts until the \\w?).
 # Within Atom you could also do it with $1. (You replace all the sequence by the firts captured group).
 # If you want to specifiy a second capture group, you need to specify it before. 
@@ -40,8 +40,8 @@ Let us assume for a moment that we only have three features/words in a dfm. Then
 
 ```{r message=FALSE, warning=FALSE}
 library("quanteda") 
-install.packages("quanteda.textstats")
-library("quanteda.textsats")
+#install.packages("quanteda.textstats")
+library("quanteda.textstats")
 library("tidyverse")
 ```
 
@@ -71,7 +71,7 @@ df_similarities %>%
   head(10)
 ```
 
-Imagine that you have a graph where one coordinate shows the number of times on word has been mentioned in a text, whereas the other coordinate would show the frequency of another word. To comput ethe similarity of two documents between these two words we draw a line from the 0-0 coordinate to each point, and the angle between both lines shows us the differences (not the lenght of the lines because that is affected by the size of the document). If the angle is really large then there would be big differences. The similarity measure would mean doing it for n-dimensions ()
+Imagine that you have a graph where one coordinate shows the number of times one word has been mentioned in a text, whereas the other coordinate would show the frequency of another word. To comput the similarity of two documents between these two words we draw a line from the 0-0 coordinate to each point, and the angle between both lines shows us the differences (not the lenght of the lines because that is affected by the size of the document). If the angle is really large then there would be big differences. The similarity measure would mean doing it for n-dimensions ()
 
 cosine = similarity.
 

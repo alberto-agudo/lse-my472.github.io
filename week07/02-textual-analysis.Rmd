@@ -171,6 +171,10 @@ dfmcleaned
 To depict word clouds for different presidents, we need to select associated documents/rows in the dfm. This can e.g. be done via information contained in the document variables using the function `dfm_subset` which returns another dfm that is a subset of the original one. We will then use this dfm as the  argument in the `textplot_wordcloud` function:
 
 ```{r}
+# General wordcloud for all presidents
+textplot_wordcloud(dfmcleaned, 
+                   rotation=0, min_size=.75, max_size=3, max_words=50)
+
 # Here you are filtering the dfm only with speeches of Obama.
 textplot_wordcloud(dfm_subset(dfmcleaned, President == "Obama"), 
                    rotation=0, min_size=.75, max_size=3, max_words=50)

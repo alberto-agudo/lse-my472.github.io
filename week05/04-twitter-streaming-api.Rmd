@@ -146,7 +146,9 @@ If we wanted to collect a stream of tweets from specific users, we could specify
 
 Lastly, let us turn to collecting tweets filtered by location instead. To be able to apply this type of filter, we need to set a geographical box and collect only the tweets that are coming from that area.
 
-For example, imagine we want to collect tweets from the United States. One way to do it is to find two pairs of coordinates (longitude and latitude) that indicate the southwest corner AND the northeast corner to create a large rectangular* boundary encompassing the country. One important thing when using this function is to note the order it uses: **It is not (lat, long), but (long, lat)**. In the case of the US, this would therefore be approx. (-125, 26) and (-65, 49) or in one vector c(-125, 26, -65, 49). How can you find coordinates? You can e.g. use Google Maps, and right-click on the desired location (e.g. the north-east corner of the US or a city) and select "What's here?". Just note that the coordinates on Google are given in opposite order. As a small exercise, what are the approximate coordinates of Detroit's center? Alternatively you can use the function `lookup_coords`, e.g.` lookup_coords("usa")`. If you would like to look up coordinates of e.g. cities with this functions you would need to supply a valid Google Maps API key as one of its arguments. Proceeding with the example of US tweets:
+For example, imagine we want to collect tweets from the United States. One way to do it is to find two pairs of coordinates (longitude and latitude) that indicate the southwest corner AND the northeast corner to create a large rectangular* boundary encompassing the country. One important thing when using this function is to note the order it uses: **It is not (lat, long), but (long, lat)**. In the case of the US, this would therefore be approx. (-125, 26) and (-65, 49) or in one vector c(-125, 26, -65, 49). How can you find coordinates? You can e.g. use Google Maps, and right-click on the desired location (e.g. the north-east corner of the US or a city) and select "What's here?". Just note that the coordinates on Google are given in opposite order. As a small exercise, what are the approximate coordinates of Detroit's center? 
+
+Alternatively you can use the function `lookup_coords`, e.g.` lookup_coords("usa")`. If you would like to look up coordinates of e.g. cities with these functions you would need to supply a valid Google Maps API key as one of its arguments. Proceeding with the example of US tweets:
 
 Detroit: Upper-right corner: 42.45321834253524, -82.90836036401082 (i.e: -82.90836036401082, 42.45321834253524)
 Lower-left corner: 42.27145296607054, -83.2636869479381 (i.e: -83.2636869479381, 42.27145296607054)
@@ -154,7 +156,7 @@ Coordinates: (-82.90836036401082, 42.45321834253524, -83.2636869479381, 42.27145
 
 
 ```{r}
-stream_tweets(q = c(-125, 26, -65, 49), timeout = 30, file_name='usa_tweets.json')
+stream_tweets(q = c(-125, 26, -65, 49), timeout = 5, file_name='usa_tweets.json')
 #stream_tweets(q = lookup_coords("usa"), timeout = 30, file_name='__________________')
 
 geo_tweets <- tryCatch({parse_stream('usa_tweets.json')},

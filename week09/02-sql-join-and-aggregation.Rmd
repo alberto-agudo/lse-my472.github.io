@@ -111,7 +111,7 @@ dbGetQuery(db,
 # We subset only posts with 1000 likes or more
 dbGetQuery(db,
   "SELECT from_name, message, likes_count, comments_count, date,   
-      comments_count/likes_count AS comment_like_ratio
+      CAST(comments_count AS FLOAT)/likes_count AS comment_like_ratio
   FROM posts
   WHERE likes_count > 1000
   ORDER BY comment_like_ratio DESC
@@ -161,7 +161,7 @@ dbGetQuery(db,
 There are other functions besides just __COUNT__. We can also compute averages, the maximum and minimum of a column, the sum... We can also use functions like __SUBSTR__ to extract parts of a character string.
 
 ```{r}
-# Average number of posts by party
+# Average likes of posts by party
 dbGetQuery(db, 
   "SELECT congress.party, AVG(posts.likes_count), COUNT(*) 
   FROM posts JOIN congress

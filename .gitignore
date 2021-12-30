@@ -515,3 +515,4 @@ week09/data/posts/zoelofgren.csv
 *.sqlite
 *.csv
 *.atx
+week05/nyt_apikey.rda

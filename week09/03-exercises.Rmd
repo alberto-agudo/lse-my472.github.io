@@ -24,7 +24,7 @@ dbGetQuery(db,
 
 # You could also do:
 dbGetQuery(db,
-           "SELECT SUM(CASE WHEN communication == 'engaging' THEN 1 ELSE 0 END)
+           "SELECT SUM(CASE WHEN communication = 'engaging' THEN 1 ELSE 0 END)
            FROM TWEETS")
 ```
 
@@ -148,15 +148,25 @@ dbGetQuery(db,
 11. Compute the total number of "sad" reactions for each domain shared by Republicans. Display the top 10 domains that receive the most "sad" reactions. Then repeat the same for Democrats. What do you find?
 
 ```{r}
-dbGetQuery(db, "SELECT posts.domain, SUM(posts.sad_count) AS sad_posts
+dbGetQuery(db, "SELECT posts.domain, SUM(posts.sad_count) AS sad_reactions
            FROM posts JOIN congress
            ON posts.screen_name 
            WHERE congress.party = 'Republican' AND posts.domain NOT NULL
            GROUP BY posts.domain
-           ORDER BY sad_posts DESC
+           ORDER BY sad_reactions DESC
            LIMIT 10")
 
-# The cnn is the media that generates most sad reactions. 
+
+
+dbGetQuery(db, "SELECT posts.domain, SUM(posts.sad_count) AS sad_reactions
+           FROM posts JOIN congress
+           ON posts.screen_name 
+           WHERE congress.party = 'Democrat' AND posts.domain NOT NULL
+           GROUP BY posts.domain
+           ORDER BY sad_reactions DESC
+           LIMIT 10")
+
+# The cnn, bostonglobe and nytimes are the media that generate most sad reactions. 
 ```
 
 
